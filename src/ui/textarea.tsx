@@ -1,7 +1,6 @@
 import * as React from "react";
 import { cn } from "./cn";
 
-/** The textarea primitive. */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

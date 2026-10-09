@@ -36,7 +36,6 @@ const buttonVariants = cva(
   },
 );
 
-/** The button primitive. */
 function Button({
   className,
   variant = "default",

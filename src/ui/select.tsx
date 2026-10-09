@@ -6,15 +6,12 @@ import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import { cn } from "./cn";
 import { TAP_TARGET_FLOOR } from "./touch-target";
 
-/** The select primitive. */
 function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
-/** The select value primitive. */
 function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
-/** The select trigger primitive. */
 function SelectTrigger({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
   return (
     <SelectPrimitive.Trigger
@@ -33,7 +30,6 @@ function SelectTrigger({ className, children, ...props }: React.ComponentProps<t
     </SelectPrimitive.Trigger>
   );
 }
-/** The select content primitive. */
 function SelectContent({ className, children, position = "popper", ...props }: React.ComponentProps<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
@@ -60,7 +56,6 @@ function SelectContent({ className, children, position = "popper", ...props }: R
     </SelectPrimitive.Portal>
   );
 }
-/** The select item primitive. */
 function SelectItem({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
   return (
     <SelectPrimitive.Item

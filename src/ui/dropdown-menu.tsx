@@ -6,14 +6,12 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 import { cn } from "./cn";
 import { TAP_TARGET_FLOOR } from "./touch-target";
 
-/** The dropdown menu primitive. */
 function DropdownMenu(
   props: React.ComponentProps<typeof DropdownMenuPrimitive.Root>,
 ) {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
 }
 
-/** The dropdown menu trigger primitive. */
 function DropdownMenuTrigger(
   props: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>,
 ) {
@@ -25,7 +23,6 @@ function DropdownMenuTrigger(
   );
 }
 
-/** The dropdown menu content primitive. */
 function DropdownMenuContent({
   className,
   sideOffset = 4,
@@ -46,7 +43,6 @@ function DropdownMenuContent({
   );
 }
 
-/** The dropdown menu group primitive. */
 function DropdownMenuGroup(
   props: React.ComponentProps<typeof DropdownMenuPrimitive.Group>,
 ) {
@@ -55,7 +51,6 @@ function DropdownMenuGroup(
   );
 }
 
-/** The dropdown menu item primitive. */
 function DropdownMenuItem({
   className,
   inset,
@@ -77,7 +72,6 @@ function DropdownMenuItem({
   );
 }
 
-/** The dropdown menu checkbox item primitive. */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -104,7 +98,6 @@ function DropdownMenuCheckboxItem({
   );
 }
 
-/** The dropdown menu radio group primitive. */
 function DropdownMenuRadioGroup(
   props: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>,
 ) {
@@ -116,7 +109,6 @@ function DropdownMenuRadioGroup(
   );
 }
 
-/** The dropdown menu radio item primitive. */
 function DropdownMenuRadioItem({
   className,
   children,
@@ -141,7 +133,6 @@ function DropdownMenuRadioItem({
   );
 }
 
-/** The dropdown menu label primitive. */
 function DropdownMenuLabel({
   className,
   inset,
@@ -162,7 +153,6 @@ function DropdownMenuLabel({
   );
 }
 
-/** The dropdown menu separator primitive. */
 function DropdownMenuSeparator({
   className,
   ...props
@@ -176,7 +166,6 @@ function DropdownMenuSeparator({
   );
 }
 
-/** The dropdown menu shortcut primitive. */
 function DropdownMenuShortcut({
   className,
   ...props
@@ -193,14 +182,12 @@ function DropdownMenuShortcut({
   );
 }
 
-/** The dropdown menu sub primitive. */
 function DropdownMenuSub(
   props: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>,
 ) {
   return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />;
 }
 
-/** The dropdown menu sub trigger primitive. */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -225,7 +212,6 @@ function DropdownMenuSubTrigger({
   );
 }
 
-/** The dropdown menu sub content primitive. */
 function DropdownMenuSubContent({
   className,
   ...props

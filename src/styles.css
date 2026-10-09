@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+
+/* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
+   switch on a .dark class; without this line the two disagree for a consumer whose OS theme
+   differs from their app theme. */
+@custom-variant dark (&:is(.dark *));
 
 @source "./";
 
@@ -18,6 +24,8 @@
     --accent: oklch(0.97 0 0);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
     --radius: 0.625rem;
   }
 
@@ -35,6 +43,8 @@
     --primary-foreground: oklch(0.205 0 0);
     --accent: oklch(0.269 0 0);
     --accent-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
   }
 }
@@ -53,6 +63,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive: var(--destructive);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);

@@ -3,7 +3,7 @@
  *  primary pointer is coarse so mouse-driven layouts keep their density. */
 export const TAP_TARGET_FLOOR = 'pointer-coarse:min-h-11';
 
-/** The tap target floor applied to both axes, for square icon controls. */
+/** The pointer-coarse sizing floor on both axes, for square icon controls. */
 export const SQUARE_TAP_TARGET_FLOOR = `${TAP_TARGET_FLOOR} pointer-coarse:min-w-11`;
 
 /** For an icon control pinned to a corner, where growing the box would drag the icon

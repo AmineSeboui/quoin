@@ -6,33 +6,28 @@ import { XIcon } from "lucide-react";
 import { cn } from "./cn";
 import { ICON_TAP_TARGET_FLOOR } from "./touch-target";
 
-/** The dialog primitive. */
 function Dialog(props: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
-/** The dialog trigger primitive. */
 function DialogTrigger(
   props: React.ComponentProps<typeof DialogPrimitive.Trigger>,
 ) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
-/** The dialog portal primitive. */
 function DialogPortal(
   props: React.ComponentProps<typeof DialogPrimitive.Portal>,
 ) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
-/** The dialog close primitive. */
 function DialogClose(
   props: React.ComponentProps<typeof DialogPrimitive.Close>,
 ) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
-/** The dialog overlay primitive. */
 function DialogOverlay({
   className,
   ...props
@@ -49,7 +44,6 @@ function DialogOverlay({
   );
 }
 
-/** The dialog content primitive. */
 function DialogContent({
   className,
   children,
@@ -81,7 +75,6 @@ function DialogContent({
   );
 }
 
-/** The dialog header primitive. */
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -92,7 +85,6 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-/** The dialog footer primitive. */
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -106,7 +98,6 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-/** The dialog title primitive. */
 function DialogTitle({
   className,
   ...props
@@ -120,7 +111,6 @@ function DialogTitle({
   );
 }
 
-/** The dialog description primitive. */
 function DialogDescription({
   className,
   ...props

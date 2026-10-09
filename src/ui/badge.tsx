@@ -20,7 +20,6 @@ const badgeVariants = cva(
   },
 );
 
-/** The badge primitive. */
 function Badge({
   className,
   variant,
