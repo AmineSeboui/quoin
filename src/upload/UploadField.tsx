@@ -5,7 +5,7 @@ import { useQuoin } from '../context';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
 
-/** A file picker that hands the chosen file to the host's `upload` function and shows its busy and error states. */
+/** Disables itself both while an upload is in flight and when the host configured no `upload` function. */
 export function UploadField({
   category,
   label,
@@ -17,7 +17,7 @@ export function UploadField({
   accept?: string;
   onUploaded: (result: UploadResult) => void;
 }) {
-  const { upload } = useQuoin();
+  const { upload, onError } = useQuoin();
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -25,12 +25,19 @@ export function UploadField({
     if (!upload) return;
     setBusy(true);
     setError(null);
+    let result: UploadResult;
     try {
-      onUploaded(await upload(file, category));
+      result = await upload(file, category);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Upload failed.');
-    } finally {
+      setError((cause instanceof Error && cause.message) || 'Upload failed.');
       setBusy(false);
+      return;
+    }
+    setBusy(false);
+    try {
+      onUploaded(result);
+    } catch (cause) {
+      onError(cause instanceof Error ? cause : new Error(String(cause)));
     }
   }
 
@@ -47,7 +54,7 @@ export function UploadField({
           Uploads are not configured for this editor.
         </span>
       )}
-      {busy && <span className="text-xs text-muted-foreground">Uploading...</span>}
+      {busy && <span role="status" className="text-xs text-muted-foreground">Uploading...</span>}
       {error && (
         <span role="alert" className="text-xs text-destructive">
           {error}

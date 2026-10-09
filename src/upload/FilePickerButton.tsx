@@ -33,6 +33,8 @@ export function FilePickerButton({
         className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
         onChange={(e) => {
           const file = e.target.files?.[0];
+          // Clear so picking the same file again still fires `change`, which is what makes retry after a failed upload work.
+          e.target.value = '';
           if (file) onPick(file);
         }}
       />

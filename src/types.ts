@@ -19,7 +19,9 @@ export type UploadResult = {
  * Stores a file and returns its key. Quoin never performs the request itself.
  * `category` names what the file is for (for example an image or a recording) so you can route it.
  * Reject with an Error whose message is safe to show the user: it is rendered
- * verbatim beside the upload button.
+ * verbatim beside the upload button. A non-Error rejection or an empty message shows a generic "Upload failed." instead.
+ * A raw `fetch` rejection such as "Failed to fetch" would surface verbatim, so catch and rethrow with your own wording.
+ * The control is disabled while an upload is in flight.
  */
 export type UploadFn = (file: File, category: string) => Promise<UploadResult>;
 
