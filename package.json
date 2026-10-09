@@ -23,7 +23,8 @@
       "import": { "types": "./dist/headless.d.ts", "default": "./dist/headless.js" },
       "require": { "types": "./dist/headless.d.cts", "default": "./dist/headless.cjs" }
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build": "tsup && npm run build:css",

@@ -42,4 +42,13 @@ writeFileSync(
   }),
 );
 run(join(work, 'node_modules', '.bin', 'tsc'), ['-p', '.'], work);
+
+// Tooling reads the manifest of a package it is given, so the exports map has to let it.
+const resolver = JSON.stringify(join(work, 'resolve-probe.cjs'));
+run(
+  process.execPath,
+  ['-e', `require('node:module').createRequire(${resolver}).resolve('quoin-editor/package.json')`],
+  work,
+);
+
 console.log('The packed package typechecks for a consumer on TypeScript 5.4, README samples included.');
