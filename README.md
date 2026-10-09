@@ -8,14 +8,16 @@ Quoin edits markdown. It does not render it. A markdown block is edited in a pla
 
 Documentation: [amineseboui.github.io/quoin](https://amineseboui.github.io/quoin)
 
+Quoin is published on npm as `quoin-editor`, because npm rejects the bare name `quoin` as too similar to an existing package. Everywhere below, `quoin-editor` is the package you install and import.
+
 ## Install
 
 ```bash
-npm install quoin
+npm install quoin-editor
 ```
 
 ```bash
-yarn add quoin
+yarn add quoin-editor
 ```
 
 Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or later if you use TypeScript. The block registry relies on the built-in `NoInfer` utility type, which arrived in 5.4.
@@ -24,8 +26,8 @@ Quoin needs React 18.2 or later (React 19 is supported) and TypeScript 5.4 or la
 
 ```tsx
 import { useState } from 'react';
-import { BlockCanvas, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 export function Editor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
@@ -43,8 +45,8 @@ If you apply the edit late, typing reverts. A debounce, a `startTransition`, or 
 
 ```tsx
 import { startTransition, useState } from 'react';
-import { BlockCanvas, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 export function BrokenEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
@@ -61,8 +63,8 @@ Debounce the side effect, not the state. `useAutosave` does exactly that: it tra
 
 ```tsx
 import { useState } from 'react';
-import { BlockCanvas, useAutosave, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, useAutosave, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 async function saveDocument(blocks: QuoinBlock[]): Promise<void> {
   await fetch('/api/document', { method: 'PUT', body: JSON.stringify(blocks) });
@@ -95,8 +97,8 @@ The case that needs care is a host that does not echo edits back. There, the las
 
 ```tsx
 import { useState } from 'react';
-import { BlockCanvas, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 export function EditorWithDiscard({ saved }: { saved: QuoinBlock[] }) {
   const [blocks, setBlocks] = useState<QuoinBlock[]>(saved);
@@ -125,8 +127,8 @@ The structural comparison is shallow over each block's `data`. A host whose bloc
 `BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl` and `onError`, and memoises it on their identity. Pass a new array or a new function on every render and the memo is busted, which re-renders every block editor on the page.
 
 ```tsx
-import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, coreBlocks, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 export function SlowEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (next: QuoinBlock[]) => void }) {
   return (
@@ -143,8 +145,8 @@ export function SlowEditor({ blocks, onChange }: { blocks: QuoinBlock[]; onChang
 Hoist them to module scope instead, or wrap them in `useMemo` and `useCallback` when they depend on props.
 
 ```tsx
-import { BlockCanvas, coreBlocks, type AnyBlockDefinition, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, coreBlocks, type AnyBlockDefinition, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 const blockTypes: AnyBlockDefinition[] = [...coreBlocks];
 const reportError = (error: Error) => console.error(error);
@@ -168,8 +170,8 @@ import {
   type BlockEditorProps,
   type BlockPreviewProps,
   type QuoinBlock,
-} from 'quoin';
-import 'quoin/styles.css';
+} from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 type BookmarkData = { url: string; title: string };
 
@@ -229,7 +231,7 @@ A definition that sets `alwaysEditing` should also supply a `preview`. A `readOn
 The preview is also how you bring your own markdown renderer. Register a `MARKDOWN` definition last, reuse the core editor, and swap the preview:
 
 ```tsx
-import { blockByType, coreBlocks, defineBlock, type AnyBlockDefinition, type BlockPreviewProps } from 'quoin';
+import { blockByType, coreBlocks, defineBlock, type AnyBlockDefinition, type BlockPreviewProps } from 'quoin-editor';
 
 function RichMarkdownPreview({ data }: BlockPreviewProps) {
   return <article>{String(data.markdown ?? '')}</article>;
@@ -249,8 +251,8 @@ Replace the `<article>` with whatever renderer you use.
 Quoin never performs a request. You hand it an `upload` function, and the image and file blocks call it with the chosen `File` and a `category` that names what the file is for (the core blocks use `'image'` and `'file'`). It resolves with an `UploadResult`.
 
 ```tsx
-import { BlockCanvas, type QuoinBlock, type UploadFn } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, type QuoinBlock, type UploadFn } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 const upload: UploadFn = async (file, category) => {
   let response: Response;
@@ -296,8 +298,8 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
 ## Read-only
 
 ```tsx
-import { BlockCanvas, type QuoinBlock } from 'quoin';
-import 'quoin/styles.css';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
 
 const noop = () => {};
 
@@ -310,7 +312,7 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 
 ## Theming
 
-`quoin/styles.css` is compiled Tailwind CSS v4 and defines these custom properties:
+`quoin-editor/styles.css` is compiled Tailwind CSS v4 and defines these custom properties:
 
 ```css
 :root {
@@ -367,7 +369,7 @@ The layer statement has to come before Quoin's stylesheet is parsed, so put it f
 
 ## Headless
 
-`quoin/headless` is the text-editing core with no UI in it: pure transforms over a string and a selection, plus two hooks. It has no component or UI library dependency, and its bundle carries no `'use client'` banner, so the pure functions can be imported from a React Server Component.
+`quoin-editor/headless` is the text-editing core with no UI in it: pure transforms over a string and a selection, plus two hooks. It has no component or UI library dependency, and its bundle carries no `'use client'` banner, so the pure functions can be imported from a React Server Component.
 
 | Export | What it does |
 | --- | --- |
@@ -384,7 +386,7 @@ The layer statement has to come before Quoin's stylesheet is parsed, so put it f
 The text transforms return an `Edit`, `{ value, selectionStart, selectionEnd }`, or `null` when they do not apply.
 
 ```ts
-import { wrapSelection } from 'quoin/headless';
+import { wrapSelection } from 'quoin-editor/headless';
 
 export function bold(text: string, start: number, end: number): string {
   return wrapSelection('bold', text, start, end).value;
@@ -397,7 +399,7 @@ export function bold(text: string, start: number, end: number): string {
 'use client';
 
 import { useState } from 'react';
-import { useAutoGrow, useMarkdownKeymap } from 'quoin/headless';
+import { useAutoGrow, useMarkdownKeymap } from 'quoin-editor/headless';
 
 export function Notes() {
   const [text, setText] = useState('');
@@ -424,15 +426,15 @@ export function Notes() {
 
 The keymap swallows a `/` typed at the start of a word (at the start of the text, or after a newline, space or tab, outside a code fence) and calls `onOpenPalette` instead, so open a palette of your own there, or insert the slash yourself.
 
-The same functions and hooks are also exported from the main `quoin` entry, alongside `TEXT_COMMANDS`, the built-in slash-palette entries.
+The same functions and hooks are also exported from the main `quoin-editor` entry, alongside `TEXT_COMMANDS`, the built-in slash-palette entries.
 
 ## Exports
 
 From `quoin`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps` and others).
 
-From `quoin/headless`: the transforms and the two hooks listed above, with no UI.
+From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 
-From `quoin/styles.css`: the stylesheet.
+From `quoin-editor/styles.css`: the stylesheet.
 
 ## Licence
 

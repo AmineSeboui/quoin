@@ -9,9 +9,9 @@ import {
   type BlockEditorProps,
   type QuoinBlock,
   type UploadFn,
-} from 'quoin';
-import { wrapSelection } from 'quoin/headless';
-import 'quoin/styles.css';
+} from 'quoin-editor';
+import { wrapSelection } from 'quoin-editor/headless';
+import 'quoin-editor/styles.css';
 
 type RatingData = { stars: number };
 
