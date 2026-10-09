@@ -5,7 +5,7 @@ import { Hash } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
 import { defineBlock } from '../registry';
 import { BlockInserter } from './BlockInserter';
-import { renderCanvas } from './render-canvas';
+import { renderCanvas } from '../../test/support/render-canvas';
 
 describe('BlockInserter', () => {
   it('opens the block options and inserts at its own index', async () => {

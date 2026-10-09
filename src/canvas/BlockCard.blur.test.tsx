@@ -1,8 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BlockCard } from './BlockCard';
-import { renderCanvas } from './render-canvas';
-import { richBlocks } from './rich-blocks';
+import { renderCanvas } from '../../test/support/render-canvas';
+import { richBlocks } from '../../test/support/rich-blocks';
 import type { QuoinBlock } from '../types';
 
 const markdown: QuoinBlock = { id: 'a', type: 'MARKDOWN', data: { markdown: '## Why indexes' } };

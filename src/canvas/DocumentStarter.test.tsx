@@ -1,6 +1,6 @@
 import { screen, fireEvent } from '@testing-library/react';
 import { DocumentStarter } from './DocumentStarter';
-import { renderCanvas } from './render-canvas';
+import { renderCanvas } from '../../test/support/render-canvas';
 
 function setup() {
   const onStart = vi.fn();

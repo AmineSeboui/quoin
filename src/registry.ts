@@ -22,6 +22,8 @@ export type BlockDefinition<D extends object = Record<string, unknown>> = {
   initialData?: () => NoInfer<D>;
   /** Whether the block is offered in the slash palette and inserter; defaults to true. */
   inSlashPalette?: boolean;
+  /** Renders this block's editor permanently instead of a preview you click to edit. */
+  alwaysEditing?: boolean;
 };
 
 /** A definition with its data type erased, so definitions of different shapes compose in one array. */

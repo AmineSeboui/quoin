@@ -1,9 +1,9 @@
 import type { ReactElement } from 'react';
-import { coreBlocks } from '../blocks/core';
-import { defineBlock, type AnyBlockDefinition } from '../registry';
-import { MarkdownBlockEditor } from '../blocks/MarkdownBlockEditor';
+import { coreBlocks } from '../../src/blocks/core';
+import { defineBlock, type AnyBlockDefinition } from '../../src/registry';
+import { MarkdownBlockEditor } from '../../src/blocks/MarkdownBlockEditor';
 import { FileText } from 'lucide-react';
-import type { BlockPreviewProps } from '../types';
+import type { BlockPreviewProps } from '../../src/types';
 
 const LINK = /\[([^\]]+)\]\(([^)]+)\)/g;
 

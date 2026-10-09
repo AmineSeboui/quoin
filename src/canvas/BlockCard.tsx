@@ -4,7 +4,6 @@ import * as React from 'react';
 import { Pencil } from 'lucide-react';
 import { BlockEditor } from './BlockEditor';
 import { sourceOffsetFor } from './source-offset';
-import { str } from '../blocks/str';
 import { useQuoin } from '../context';
 import { blockByType } from '../registry';
 import type { QuoinBlock } from '../types';
@@ -15,27 +14,6 @@ const INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, [role="button"
 /** Radix renders Select, dropdown and popover content in a portal, so focus moving
  *  into one leaves this block's DOM subtree while the author is still editing it. */
 const PORTALLED_OVERLAY = '[data-radix-popper-content-wrapper], [role="dialog"]';
-
-const EMPTY_HINT: Partial<Record<string, string>> = {
-  IMAGE: 'No image added yet.',
-  FILE: 'No file added yet.',
-  MARKDOWN: 'This markdown block is empty.',
-};
-
-function emptyHintFor(
-  block: QuoinBlock,
-  resolveAssetUrl: (storageKey: string) => string,
-): string | null | undefined {
-  switch (block.type) {
-    case 'IMAGE':
-    case 'FILE':
-      return resolveAssetUrl(str(block.data.storageKey)) ? null : EMPTY_HINT[block.type];
-    case 'MARKDOWN':
-      return String(block.data.markdown ?? '').trim() ? null : EMPTY_HINT.MARKDOWN;
-    default:
-      return null;
-  }
-}
 
 // A drag-select ends in a click on mouseup; bailing here keeps that click from
 // flipping the block into edit mode and wiping out the selection it just made.
@@ -60,8 +38,9 @@ function BlockCardImpl({
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onInsertBlock?: (index: number, type: string) => void;
 }) {
-  const { blockTypes, resolveAssetUrl } = useQuoin();
-  const Preview = blockByType(blockTypes, block.type)?.preview;
+  const { blockTypes } = useQuoin();
+  const definition = blockByType(blockTypes, block.type);
+  const Preview = definition?.preview;
   const [editing, setEditing] = React.useState(editingByDefault);
   const editButtonRef = React.useRef<HTMLButtonElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
@@ -161,6 +140,17 @@ function BlockCardImpl({
     editButtonRef.current?.focus();
   }, [editing]);
 
+  if (definition?.alwaysEditing) {
+    return (
+      <BlockEditor
+        type={block.type}
+        data={block.data}
+        onChange={(data) => onUpdate(block.id, data)}
+        onInsertBlock={handleInsertBlock}
+      />
+    );
+  }
+
   if (editing) {
     return (
       <div
@@ -192,8 +182,6 @@ function BlockCardImpl({
     );
   }
 
-  const emptyHint = emptyHintFor(block, resolveAssetUrl);
-
   return (
     <div className="group/card relative">
       <div
@@ -206,11 +194,7 @@ function BlockCardImpl({
           setEditing(true);
         }}
       >
-        {emptyHint ? (
-          <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">{emptyHint}</p>
-        ) : Preview ? (
-          <Preview data={block.data} blockId={block.id} />
-        ) : null}
+        {Preview ? <Preview data={block.data} blockId={block.id} /> : null}
       </div>
       <Button
         ref={editButtonRef}

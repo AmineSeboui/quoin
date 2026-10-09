@@ -1,6 +1,6 @@
 import { screen, fireEvent } from '@testing-library/react';
 import { BlockCard } from './BlockCard';
-import { renderCanvas } from './render-canvas';
+import { renderCanvas } from '../../test/support/render-canvas';
 
 function setup() {
   const onInsertBlock = vi.fn();

@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
@@ -6,8 +7,8 @@ import { coreBlocks } from '../blocks/core';
 import { defineBlock } from '../registry';
 import { Hash } from 'lucide-react';
 import { BlockCard } from './BlockCard';
-import { renderCanvas } from './render-canvas';
-import { richBlocks } from './rich-blocks';
+import { renderCanvas } from '../../test/support/render-canvas';
+import { richBlocks } from '../../test/support/rich-blocks';
 import type { QuoinBlock } from '../types';
 
 const markdown: QuoinBlock = { id: 'a', type: 'MARKDOWN', data: { markdown: '## Why indexes' } };
@@ -115,19 +116,14 @@ describe('BlockCard', () => {
 
   it('shows a named placeholder for an empty image block instead of collapsing to zero height', () => {
     setup({ id: 'i', type: 'IMAGE', data: { alt: '' } });
-    expect(screen.getByText('No image added yet.')).toBeInTheDocument();
-  });
-
-  it('shows a named placeholder for an empty markdown block', () => {
-    setup({ id: 'm', type: 'MARKDOWN', data: { markdown: '' } });
-    expect(screen.getByText('This markdown block is empty.')).toBeInTheDocument();
+    expect(screen.getByText('No image chosen')).toBeInTheDocument();
   });
 
   it('re-enters editing from a click on the empty-block placeholder', async () => {
     const user = userEvent.setup();
     setup({ id: 'i', type: 'IMAGE', data: { alt: '' } });
 
-    await user.click(screen.getByText('No image added yet.'));
+    await user.click(screen.getByText('No image chosen'));
     expect(screen.getByLabelText('Image alt text')).toBeInTheDocument();
   });
 
@@ -136,16 +132,22 @@ describe('BlockCard', () => {
     expect(screen.getByText('Mind the gap')).toBeInTheDocument();
   });
 
-  it('draws a host-registered type through its own preview and ignores clicks on its controls', async () => {
+  it('draws a host-registered type through its own stateful preview and lets its controls work without entering edit mode', async () => {
     const user = userEvent.setup();
+    function CounterPreview({ data }: { data: Record<string, unknown> }) {
+      const [count, setCount] = React.useState(Number(data.count));
+      return (
+        <button type="button" onClick={() => setCount((c) => c + 1)}>
+          {`Count ${count}`}
+        </button>
+      );
+    }
     const counter = defineBlock<Record<string, unknown>>({
       type: 'COUNTER',
       label: 'Counter',
       icon: Hash,
       editor: () => <textarea aria-label="Counter editor" />,
-      preview: ({ data }) => (
-        <button type="button">{`Count ${String(data.count)}`}</button>
-      ),
+      preview: CounterPreview,
     });
     renderCanvas(
       <BlockCard block={{ id: 'k', type: 'COUNTER', data: { count: 3 } }} index={0} onUpdate={vi.fn()} />,
@@ -154,7 +156,75 @@ describe('BlockCard', () => {
 
     await user.click(screen.getByRole('button', { name: 'Count 3' }));
 
+    expect(screen.getByRole('button', { name: 'Count 4' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Counter editor')).not.toBeInTheDocument();
+  });
+
+  it('keeps a block that sets alwaysEditing open with no way to leave edit mode', async () => {
+    const user = userEvent.setup();
+    const onDone = vi.fn();
+    const live = defineBlock<Record<string, unknown>>({
+      type: 'LIVE',
+      label: 'Live',
+      icon: Hash,
+      alwaysEditing: true,
+      editor: (props) => {
+        onDone(props.onDone);
+        return <textarea aria-label="Live editor" />;
+      },
+      preview: () => <p>Live preview</p>,
+    });
+    renderCanvas(
+      <BlockCard block={{ id: 'l', type: 'LIVE', data: {} }} index={0} onUpdate={vi.fn()} />,
+      [...coreBlocks, live],
+    );
+
+    expect(screen.getByLabelText('Live editor')).toBeInTheDocument();
+    expect(screen.queryByText('Live preview')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit block 1' })).not.toBeInTheDocument();
+    expect(onDone).toHaveBeenCalledWith(undefined);
+
+    await user.click(screen.getByLabelText('Live editor'));
+    await user.keyboard('{Escape}');
+    expect(screen.getByLabelText('Live editor')).toBeInTheDocument();
+  });
+
+  it('shows the default plain-text markdown preview at rest and opens the editor on click', async () => {
+    const user = userEvent.setup();
+    renderCanvas(
+      <BlockCard block={{ id: 'p', type: 'MARKDOWN', data: { markdown: 'Plain words' } }} index={0} onUpdate={vi.fn()} />,
+    );
+
+    await user.click(screen.getByText('Plain words'));
+
+    expect(screen.getByLabelText('Markdown')).toHaveValue('Plain words');
+  });
+
+  it('lets the default markdown preview own the empty state, and opens the editor from it', async () => {
+    const user = userEvent.setup();
+    renderCanvas(
+      <BlockCard block={{ id: 'e', type: 'MARKDOWN', data: { markdown: '' } }} index={0} onUpdate={vi.fn()} />,
+    );
+
+    await user.click(screen.getByText('Empty markdown block'));
+
+    expect(screen.getByLabelText('Markdown')).toBeInTheDocument();
+  });
+
+  it('lets a host preview own the empty state instead of a card-level hint', () => {
+    const image = defineBlock<Record<string, unknown>>({
+      type: 'IMAGE',
+      label: 'Image',
+      icon: Hash,
+      editor: () => null,
+      preview: () => <p>Pick a picture</p>,
+    });
+    renderCanvas(
+      <BlockCard block={{ id: 'i', type: 'IMAGE', data: {} }} index={0} onUpdate={vi.fn()} />,
+      [...coreBlocks, image],
+    );
+    expect(screen.getByText('Pick a picture')).toBeInTheDocument();
+    expect(screen.queryByText('No image chosen')).not.toBeInTheDocument();
   });
 
   it('renders an empty card instead of crashing for a type no one registered', () => {
@@ -168,7 +238,7 @@ describe('BlockCard', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
-  it('resolves an image storage key through the host before deciding the block is empty', () => {
+  it('draws an image through the host resolveAssetUrl, handing it the storage key', () => {
     const resolveAssetUrl = vi.fn((key: string) => (key ? `https://cdn.test/${key}` : ''));
     render(
       <QuoinProvider value={{ blockTypes: coreBlocks, resolveAssetUrl }}>
@@ -181,7 +251,7 @@ describe('BlockCard', () => {
     );
 
     expect(resolveAssetUrl).toHaveBeenCalledWith('img/a.png');
-    expect(screen.queryByText('No image added yet.')).not.toBeInTheDocument();
+    expect(screen.queryByText('No image chosen')).not.toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'A diagram' })).toHaveAttribute('src', 'https://cdn.test/img/a.png');
   });
 
