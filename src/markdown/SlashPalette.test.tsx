@@ -10,6 +10,16 @@ const testBlocks = [
   defineBlock({ type: 'CODE', label: 'Code', icon: FileText, editor: () => null }),
 ];
 
+const paletteProps = {
+  open: true,
+  caret: null,
+  onOpenChange: () => {},
+  onTextCommand: () => {},
+  onBlockCommand: () => {},
+  onShortcuts: () => {},
+  onDismiss: () => {},
+};
+
 function renderPalette(ui: React.ReactElement, blockTypes = testBlocks) {
   return render(<QuoinProvider value={{ blockTypes }}>{ui}</QuoinProvider>);
 }
@@ -120,5 +130,33 @@ describe('SlashPalette', () => {
       [...testBlocks, custom],
     );
     expect(await screen.findByText('Chart')).toBeInTheDocument();
+  });
+
+  it('leaves a block with inSlashPalette false out of the palette', () => {
+    const hidden = defineBlock({
+      type: 'INTERNAL',
+      label: 'Internal',
+      icon: FileText,
+      editor: () => null,
+      inSlashPalette: false,
+    });
+    renderPalette(<SlashPalette {...paletteProps} />, [...testBlocks, hidden]);
+    expect(screen.getByText('Markdown')).toBeInTheDocument();
+    expect(screen.queryByText('Internal')).toBeNull();
+  });
+
+  it('shows neither definition when a later one of the same type opts out', () => {
+    const original = defineBlock({ type: 'CHART', label: 'Chart', icon: FileText, editor: () => null });
+    const hiddenOverride = defineBlock({
+      type: 'CHART',
+      label: 'Chart override',
+      icon: FileText,
+      editor: () => null,
+      inSlashPalette: false,
+    });
+    renderPalette(<SlashPalette {...paletteProps} />, [...testBlocks, original, hiddenOverride]);
+    expect(screen.getByText('Markdown')).toBeInTheDocument();
+    expect(screen.queryByText('Chart')).toBeNull();
+    expect(screen.queryByText('Chart override')).toBeNull();
   });
 });
