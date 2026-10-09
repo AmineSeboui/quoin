@@ -1,0 +1,24 @@
+name: Deprecate a version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to deprecate, for example 0.0.0-stage
+        required: true
+      message:
+        description: Deprecation message. Leave empty to undo a deprecation.
+        required: false
+        default: ''
+
+jobs:
+  deprecate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - run: npm deprecate "quoin-editor@${{ inputs.version }}" "${{ inputs.message }}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
