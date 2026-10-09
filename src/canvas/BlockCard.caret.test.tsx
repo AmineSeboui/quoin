@@ -134,3 +134,81 @@ describe('the page position when a block opens for editing', () => {
     Reflect.deleteProperty(HTMLTextAreaElement.prototype, 'scrollHeight');
   });
 });
+
+const PLAIN = 'The quick brown fox jumps over the lazy dog, and then twice more.';
+
+// jsdom has no layout, so the browser's own hit testing is stood in for: the caret is
+// pinned to a known text node and offset, which is what a real click would resolve to.
+function placeCaretIn(text: string, offset: number) {
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let node: Node | null = null;
+  while (walker.nextNode()) {
+    if (walker.currentNode.textContent === text) {
+      node = walker.currentNode;
+      break;
+    }
+  }
+  Object.assign(document, { caretPositionFromPoint: () => (node ? { offsetNode: node, offset } : null) });
+  return node;
+}
+
+function renderPlain(markdown: string) {
+  return renderCanvas(
+    <BlockCard block={{ id: 'p', type: 'MARKDOWN', data: { markdown } }} index={0} onUpdate={vi.fn()} />,
+  );
+}
+
+async function clickBody(container: HTMLElement) {
+  const body = container.querySelector('.whitespace-pre-wrap');
+  await userEvent.setup().click(body as HTMLElement);
+  return (await screen.findByLabelText('Markdown')) as HTMLTextAreaElement;
+}
+
+describe('entering a block drawn by the stock preview, where the text is the source', () => {
+  afterEach(() => Reflect.deleteProperty(document, 'caretPositionFromPoint'));
+
+  it('lands the caret in the middle of the line the click fell on', async () => {
+    const { container } = renderPlain(PLAIN);
+    expect(placeCaretIn(PLAIN, 27)).not.toBeNull();
+
+    const box = await clickBody(container);
+
+    await waitFor(() => expect(box.selectionStart).toBe(27));
+  });
+
+  it('lands the caret at the end when the click falls at the end', async () => {
+    const { container } = renderPlain(PLAIN);
+    placeCaretIn(PLAIN, PLAIN.length);
+
+    const box = await clickBody(container);
+
+    await waitFor(() => expect(box.selectionStart).toBe(PLAIN.length));
+  });
+
+  it('counts the newlines of a multi-line block rather than stopping at the first', async () => {
+    const { container } = renderPlain(SOURCE);
+    const offset = SOURCE.indexOf('Third paragraph.') + 6;
+    placeCaretIn(SOURCE, offset);
+
+    const box = await clickBody(container);
+
+    await waitFor(() => expect(box.selectionStart).toBe(offset));
+  });
+
+  it('falls back to searching the source when a rich preview renders something else', async () => {
+    renderCanvas(
+      <BlockCard
+        block={{ id: 'r', type: 'MARKDOWN', data: { markdown: SOURCE } }}
+        index={0}
+        onUpdate={vi.fn()}
+      />,
+      richBlocks,
+    );
+    placeCaretIn('Third paragraph.', 4);
+
+    await userEvent.setup().click(screen.getByText('Third paragraph.'));
+
+    const box = (await screen.findByLabelText('Markdown')) as HTMLTextAreaElement;
+    await waitFor(() => expect(box.selectionStart).toBe(SOURCE.indexOf('Third paragraph.')));
+  });
+});

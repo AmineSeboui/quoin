@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Pencil } from 'lucide-react';
 import { BlockEditor } from './BlockEditor';
-import { sourceOffsetFor } from './source-offset';
+import { renderedOffsetAt, sourceOffsetFor, type ClickProbe } from './source-offset';
 import { useQuoin } from '../context';
 import { blockByType } from '../registry';
 import type { QuoinBlock } from '../types';
@@ -48,7 +48,7 @@ function BlockCardImpl({
   const editButtonRef = React.useRef<HTMLButtonElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
   const returnFocusOnClose = React.useRef(false);
-  const clickedTextRef = React.useRef<string | null>(null);
+  const clickedRef = React.useRef<ClickProbe | null>(null);
   const scrollTopRef = React.useRef<number | null>(null);
 
   const handleInsertBlock = React.useCallback(
@@ -99,9 +99,9 @@ function BlockCardImpl({
     }, 0);
   }
 
-  // Focus on the click path must not scroll: the caret would otherwise land at the
-  // top of the block and drag the viewport there, away from the line the author
-  // actually aimed at.
+  // Focus on the click path must not scroll: the caret is placed after focus, so the
+  // browser would otherwise drag the viewport to wherever the box's selection starts
+  // out, away from the line the author actually aimed at.
   React.useEffect(() => {
     if (!editing) return;
     const field = editorContainerRef.current?.querySelector<HTMLElement>(
@@ -109,8 +109,8 @@ function BlockCardImpl({
     );
     if (!field) return;
 
-    const clicked = clickedTextRef.current;
-    clickedTextRef.current = null;
+    const clicked = clickedRef.current;
+    clickedRef.current = null;
 
     if (clicked === null || !(field instanceof HTMLTextAreaElement)) {
       field.focus();
@@ -200,7 +200,11 @@ function BlockCardImpl({
           const target = e.target as HTMLElement;
           if (target.closest(INTERACTIVE_SELECTOR)) return;
           if (hasSelectionWithin(e.currentTarget)) return;
-          clickedTextRef.current = target.textContent ?? '';
+          clickedRef.current = {
+            rendered: e.currentTarget.textContent ?? '',
+            clickedText: target.textContent ?? '',
+            renderedOffset: renderedOffsetAt(e.currentTarget, e.clientX, e.clientY),
+          };
           scrollTopRef.current = (document.scrollingElement ?? document.documentElement).scrollTop;
           setEditing(true);
         }}
