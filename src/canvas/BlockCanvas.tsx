@@ -33,7 +33,12 @@ export type BlockCanvasProps = {
    * The document. Update it synchronously from `onChange`, as with a controlled `<input value onChange>`:
    * a host that applies edits late (a debounce, a transition, an async store) will see typing revert,
    * and should treat the canvas as uncontrolled by passing the initial document and ignoring later echoes.
-   * A new array that differs from what the canvas shows replaces it, which is how a host loads, undoes or merges.
+   * A new array that differs from the last one you supplied replaces what the canvas shows, which is how a host
+   * loads, undoes or merges. An array structurally equal to the last one you supplied is ignored, so a "discard
+   * changes" button that hands back the original document does nothing; remount the canvas with a React `key` to
+   * force a reset. The comparison is shallow over each block's `data`: a host whose block `data` holds nested
+   * objects rebuilt on every render, and which does not echo `onChange` back, can still lose an edit. The core
+   * block types all have flat data, so this only affects custom blocks.
    */
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
