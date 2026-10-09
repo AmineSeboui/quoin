@@ -28,7 +28,12 @@ export function MarkdownBlockEditor({ data, onChange, onInsertBlock, onDone }: B
   const [shortcutsOpen, setShortcutsOpen] = React.useState(false);
 
   const set = (patch: Record<string, unknown>) => onChange({ ...data, ...patch });
-  const commit = (next: string) => onChange({ ...data, markdown: next });
+  // The keymap memoises its handlers on this, so a fresh closure every render would
+  // rebuild them on every render too, including the ones a palette or dialog causes.
+  const commit = React.useCallback(
+    (next: string) => onChange({ ...data, markdown: next }),
+    [data, onChange],
+  );
 
   const keymap = useMarkdownKeymap({ commit, onOpenPalette: palette.openAtCaret });
 
