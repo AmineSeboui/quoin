@@ -1,0 +1,230 @@
+'use client';
+
+import * as React from 'react';
+import { Pencil } from 'lucide-react';
+import { BlockEditor } from './BlockEditor';
+import { sourceOffsetFor } from './source-offset';
+import { str } from '../blocks/str';
+import { useQuoin } from '../context';
+import { blockByType } from '../registry';
+import type { QuoinBlock } from '../types';
+import { Button } from '../ui/button';
+
+const INTERACTIVE_SELECTOR = 'a, button, input, textarea, select, [role="button"], [tabindex], iframe';
+
+/** Radix renders Select, dropdown and popover content in a portal, so focus moving
+ *  into one leaves this block's DOM subtree while the author is still editing it. */
+const PORTALLED_OVERLAY = '[data-radix-popper-content-wrapper], [role="dialog"]';
+
+const EMPTY_HINT: Partial<Record<string, string>> = {
+  IMAGE: 'No image added yet.',
+  FILE: 'No file added yet.',
+  MARKDOWN: 'This markdown block is empty.',
+};
+
+function emptyHintFor(
+  block: QuoinBlock,
+  resolveAssetUrl: (storageKey: string) => string,
+): string | null | undefined {
+  switch (block.type) {
+    case 'IMAGE':
+    case 'FILE':
+      return resolveAssetUrl(str(block.data.storageKey)) ? null : EMPTY_HINT[block.type];
+    case 'MARKDOWN':
+      return String(block.data.markdown ?? '').trim() ? null : EMPTY_HINT.MARKDOWN;
+    default:
+      return null;
+  }
+}
+
+// A drag-select ends in a click on mouseup; bailing here keeps that click from
+// flipping the block into edit mode and wiping out the selection it just made.
+function hasSelectionWithin(container: HTMLElement): boolean {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return false;
+  return container.contains(selection.getRangeAt(0).commonAncestorContainer);
+}
+
+function BlockCardImpl({
+  block,
+  index,
+  editingByDefault = false,
+  initialSelection = null,
+  onUpdate,
+  onInsertBlock,
+}: {
+  block: QuoinBlock;
+  index: number;
+  editingByDefault?: boolean;
+  initialSelection?: { start: number; end: number } | null;
+  onUpdate: (id: string, data: Record<string, unknown>) => void;
+  onInsertBlock?: (index: number, type: string) => void;
+}) {
+  const { blockTypes, resolveAssetUrl } = useQuoin();
+  const Preview = blockByType(blockTypes, block.type)?.preview;
+  const [editing, setEditing] = React.useState(editingByDefault);
+  const editButtonRef = React.useRef<HTMLButtonElement>(null);
+  const editorContainerRef = React.useRef<HTMLDivElement>(null);
+  const returnFocusOnClose = React.useRef(false);
+  const clickedTextRef = React.useRef<string | null>(null);
+  const scrollTopRef = React.useRef<number | null>(null);
+
+  const handleInsertBlock = React.useCallback(
+    (type: string) => onInsertBlock?.(index + 1, type),
+    [onInsertBlock, index],
+  );
+
+  const leaveEditing = React.useCallback(() => {
+    returnFocusOnClose.current = true;
+    setEditing(false);
+  }, []);
+
+  const settleRef = React.useRef<number | null>(null);
+
+  const clearSettle = () => {
+    if (settleRef.current === null) return;
+    window.clearTimeout(settleRef.current);
+    settleRef.current = null;
+  };
+
+  React.useEffect(() => clearSettle, []);
+
+  function stillInside(node: Element | null): boolean {
+    if (!node) return false;
+    return Boolean(editorContainerRef.current?.contains(node)) || Boolean(node.closest(PORTALLED_OVERLAY));
+  }
+
+  // Editing ends when the author's attention goes elsewhere, so a block left
+  // behind renders instead of stranding them on its markdown source. A pointer
+  // event is read directly rather than through focus, which Radix moves around
+  // asynchronously while an overlay or a freshly inserted block settles.
+  React.useEffect(() => {
+    if (!editing) return;
+    function onPointerDown(e: PointerEvent) {
+      if (stillInside(e.target as Element | null)) return;
+      setEditing(false);
+    }
+    document.addEventListener('pointerdown', onPointerDown, true);
+    return () => document.removeEventListener('pointerdown', onPointerDown, true);
+  }, [editing]);
+
+  function closeIfTabbedAway() {
+    clearSettle();
+    settleRef.current = window.setTimeout(() => {
+      settleRef.current = null;
+      if (stillInside(document.activeElement)) return;
+      setEditing(false);
+    }, 0);
+  }
+
+  // Focus on the click path must not scroll: the caret would otherwise land at the
+  // top of the block and drag the viewport there, away from the line the author
+  // actually aimed at.
+  React.useEffect(() => {
+    if (!editing) return;
+    const field = editorContainerRef.current?.querySelector<HTMLElement>(
+      'textarea, input, [role="combobox"]',
+    );
+    if (!field) return;
+
+    const clicked = clickedTextRef.current;
+    clickedTextRef.current = null;
+
+    if (clicked === null || !(field instanceof HTMLTextAreaElement)) {
+      field.focus();
+      if (field instanceof HTMLTextAreaElement) {
+        const at = initialSelection ?? { start: field.value.length, end: field.value.length };
+        field.setSelectionRange(at.start, at.end);
+      }
+      return;
+    }
+
+    const offset = sourceOffsetFor(field.value, clicked);
+    field.focus({ preventScroll: true });
+    field.setSelectionRange(offset, offset);
+  }, [editing, initialSelection]);
+
+  // Replacing a tall rendered block with a one-row textarea shrinks the page, so
+  // the browser clamps the scroll before the box can grow back. The position is
+  // taken at the click and put back here, after the box has been sized.
+  React.useLayoutEffect(() => {
+    const scrollTop = scrollTopRef.current;
+    scrollTopRef.current = null;
+    if (!editing || scrollTop === null) return;
+    const scroller = document.scrollingElement ?? document.documentElement;
+    if (scroller.scrollTop !== scrollTop) scroller.scrollTop = scrollTop;
+  }, [editing]);
+
+  React.useEffect(() => {
+    if (editing || !returnFocusOnClose.current) return;
+    returnFocusOnClose.current = false;
+    editButtonRef.current?.focus();
+  }, [editing]);
+
+  if (editing) {
+    return (
+      <div
+        ref={editorContainerRef}
+        onKeyDown={(e) => {
+          if (e.key === 'Tab') {
+            closeIfTabbedAway();
+            return;
+          }
+          if (e.key !== 'Escape') return;
+          // Radix's DismissableLayer (Select, dropdowns, etc.) closes on a document
+          // capture listener and never stops propagation, so this handler still
+          // sees the Escape that already dismissed a nested overlay. Only collapse
+          // when the key genuinely landed inside this editor's own DOM subtree, not
+          // in a portalled overlay that merely propagates through the React tree.
+          if (!editorContainerRef.current?.contains(e.target as Node)) return;
+          returnFocusOnClose.current = true;
+          setEditing(false);
+        }}
+      >
+        <BlockEditor
+          type={block.type}
+          data={block.data}
+          onChange={(data) => onUpdate(block.id, data)}
+          onInsertBlock={handleInsertBlock}
+          onDone={leaveEditing}
+        />
+      </div>
+    );
+  }
+
+  const emptyHint = emptyHintFor(block, resolveAssetUrl);
+
+  return (
+    <div className="group/card relative">
+      <div
+        onClick={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest(INTERACTIVE_SELECTOR)) return;
+          if (hasSelectionWithin(e.currentTarget)) return;
+          clickedTextRef.current = target.textContent ?? '';
+          scrollTopRef.current = (document.scrollingElement ?? document.documentElement).scrollTop;
+          setEditing(true);
+        }}
+      >
+        {emptyHint ? (
+          <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">{emptyHint}</p>
+        ) : Preview ? (
+          <Preview data={block.data} blockId={block.id} />
+        ) : null}
+      </div>
+      <Button
+        ref={editButtonRef}
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label={`Edit block ${index + 1}`}
+        onClick={() => setEditing(true)}
+        className="absolute right-0 top-0 bg-background/90 opacity-0 transition-opacity group-hover/card:opacity-100 group-focus-within/card:opacity-100 focus-visible:opacity-100"
+      >
+        <Pencil aria-hidden="true" />
+      </Button>
+    </div>
+  );
+}
+
+export const BlockCard = React.memo(BlockCardImpl);
