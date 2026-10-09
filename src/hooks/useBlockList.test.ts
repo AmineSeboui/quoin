@@ -211,3 +211,36 @@ describe('useBlockList block ids across page loads', () => {
     expect(new Set(ids).size).toBe(2);
   });
 });
+
+describe('useBlockList undo depth', () => {
+  const many: QuoinBlock[] = Array.from({ length: 30 }, (_, i) => ({
+    id: `b${i}`,
+    type: 'MARKDOWN',
+    data: { markdown: String(i) },
+  }));
+
+  it('keeps the recent removals restorable', () => {
+    const { result } = renderHook(() => useBlockList(many));
+    const tokens: number[] = [];
+    act(() => {
+      for (const block of many) tokens.push(result.current.remove(block.id));
+    });
+    expect(result.current.blocks).toEqual([]);
+
+    act(() => result.current.undo(tokens[tokens.length - 1]));
+
+    expect(result.current.blocks.map((b) => b.id)).toEqual(['b29']);
+  });
+
+  it('forgets the oldest ones instead of holding every deleted block forever', () => {
+    const { result } = renderHook(() => useBlockList(many));
+    const tokens: number[] = [];
+    act(() => {
+      for (const block of many) tokens.push(result.current.remove(block.id));
+    });
+
+    act(() => result.current.undo(tokens[0]));
+
+    expect(result.current.blocks).toEqual([]);
+  });
+});

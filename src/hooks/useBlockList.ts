@@ -23,6 +23,11 @@ type Action =
 
 let removalSeq = 0;
 
+/** A canvas may never call `undo`, so the oldest removals are dropped rather than kept
+ *  for the lifetime of the document. The cap is far past any run of deletes a person
+ *  would undo one by one. */
+const UNDO_DEPTH = 20;
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'insertAt': {
@@ -41,6 +46,11 @@ function reducer(state: State, action: Action): State {
       if (index === -1) return state;
       const removals = new Map(state.removals);
       removals.set(action.token, { block: state.blocks[index], index });
+      while (removals.size > UNDO_DEPTH) {
+        const oldest = removals.keys().next();
+        if (oldest.done) break;
+        removals.delete(oldest.value);
+      }
       return { blocks: state.blocks.filter((b) => b.id !== action.id), removals };
     }
     case 'undo': {
@@ -77,6 +87,7 @@ export type BlockList = {
   blocks: QuoinBlock[];
   insertAt: (index: number, type: string, data?: Record<string, unknown>) => string;
   update: (id: string, data: Record<string, unknown>) => void;
+  /** Returns a token `undo` restores that block with; only the last 20 removals stay restorable. */
   remove: (id: string) => UndoToken;
   undo: (token: UndoToken) => void;
   move: (index: number, dir: -1 | 1) => void;
