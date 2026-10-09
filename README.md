@@ -393,7 +393,7 @@ export function bold(text: string, start: number, end: number): string {
 }
 ```
 
-`useMarkdownKeymap` and `useAutoGrow` are hooks, so they can only be called from a client component, even though the module that exports them is safe to import anywhere.
+`useMarkdownKeymap` and `useAutoGrow` are importable from a React Server Component, because the module that exports them carries no `'use client'` banner. Being hooks, they are callable only from a client component.
 
 ```tsx
 'use client';
@@ -426,11 +426,21 @@ export function Notes() {
 
 The keymap swallows a `/` typed at the start of a word (at the start of the text, or after a newline, space or tab, outside a code fence) and calls `onOpenPalette` instead, so open a palette of your own there, or insert the slash yourself.
 
-The same functions and hooks are also exported from the main `quoin-editor` entry, alongside `TEXT_COMMANDS`, the built-in slash-palette entries.
+Everything in the table is re-exported from the main `quoin-editor` entry too, alongside `TEXT_COMMANDS`, the built-in slash-palette entries. Import from `quoin-editor/headless` when you want the transforms without the components behind them, and from `quoin-editor` when you are already importing `BlockCanvas`.
+
+```ts
+import { toggleLinePrefix } from 'quoin-editor';
+
+export function heading(text: string, start: number, end: number): string {
+  return toggleLinePrefix('h2', text, start, end).value;
+}
+```
+
+The main entry carries a `'use client'` banner, so a React Server Component has to import from `quoin-editor/headless` rather than from `quoin-editor`.
 
 ## Exports
 
-From `quoin`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps` and others).
+From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps` and others).
 
 From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 

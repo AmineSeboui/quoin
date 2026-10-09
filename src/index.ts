@@ -12,3 +12,14 @@ export {
 export { useAutoGrow } from './hooks/useAutoGrow';
 export { TEXT_COMMANDS, type TextCommand } from './markdown/commands';
 export type { QuoinBlock, UploadResult, UploadFn, BlockEditorProps, BlockPreviewProps } from './types';
+export { applyEdit, type Edit } from './markdown/edit';
+export { lineAt } from './markdown/line-at';
+export { toggleLinePrefix, type LinePrefix } from './markdown/line-toggles';
+export { continueList } from './markdown/list-continuation';
+export { indentList } from './markdown/indent-list';
+export { wrapSelection, linkPaste, type WrapKind } from './markdown/wrap-selection';
+export { insertCommand, type InsertableCommand } from './markdown/insert-command';
+export { shouldOpenPalette } from './markdown/slash-trigger';
+export { formatShortcut } from './markdown/shortcut-label';
+export { caretRect, type CaretRect } from './markdown/caret-coordinates';
+export { useMarkdownKeymap } from './markdown/useMarkdownKeymap';
