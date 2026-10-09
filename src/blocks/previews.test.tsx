@@ -36,9 +36,32 @@ describe('previews', () => {
     expect(screen.getByText('No image chosen')).toBeInTheDocument();
   });
 
+  it('shows the hint, not a dead image, when a prefixing resolver gets an empty key', () => {
+    render(
+      <QuoinProvider value={{ blockTypes: [], resolveAssetUrl: (k) => `/cdn/${k}` }}>
+        <ImagePreview data={{ storageKey: '', alt: '' }} />
+      </QuoinProvider>,
+    );
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('No image chosen')).toBeInTheDocument();
+  });
+
   it('names the attached file', () => {
     wrap(<FilePreview data={{ storageKey: 'k', filename: 'notes.pdf' }} />);
     expect(screen.getByText('notes.pdf')).toBeInTheDocument();
+  });
+
+  it('shows hints for a fresh code block and a fresh callout', () => {
+    const { container } = wrap(<CodePreview data={{ language: '', code: '' }} />);
+    expect(container.querySelector('pre')).toBeNull();
+    expect(screen.getByText('Empty code block')).toBeInTheDocument();
+    wrap(<CalloutPreview data={{ tone: 'info', body: '' }} />);
+    expect(screen.getByText('Empty callout')).toBeInTheDocument();
+  });
+
+  it('reflects the chosen callout tone on the container', () => {
+    wrap(<CalloutPreview data={{ tone: 'danger', body: 'Careful' }} />);
+    expect(screen.getByText('Careful')).toHaveAttribute('data-tone', 'danger');
   });
 
   it('shows callout text from the body field the editor writes', () => {

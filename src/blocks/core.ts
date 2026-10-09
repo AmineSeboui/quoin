@@ -15,7 +15,7 @@ import {
 
 /** The block types Quoin ships with. Spread them alongside your own definitions. */
 export const coreBlocks: AnyBlockDefinition[] = [
-  defineBlock<Record<string, unknown>>({
+  defineBlock({
     type: 'MARKDOWN',
     label: 'Markdown',
     icon: FileText,
@@ -23,7 +23,7 @@ export const coreBlocks: AnyBlockDefinition[] = [
     preview: MarkdownPreview,
     initialData: () => ({ markdown: '' }),
   }),
-  defineBlock<Record<string, unknown>>({
+  defineBlock({
     type: 'CALLOUT',
     label: 'Callout',
     icon: MessageSquare,
@@ -31,7 +31,7 @@ export const coreBlocks: AnyBlockDefinition[] = [
     preview: CalloutPreview,
     initialData: () => ({ tone: 'info', body: '' }),
   }),
-  defineBlock<Record<string, unknown>>({
+  defineBlock({
     type: 'CODE',
     label: 'Code',
     icon: Code,
@@ -39,7 +39,7 @@ export const coreBlocks: AnyBlockDefinition[] = [
     preview: CodePreview,
     initialData: () => ({ language: '', code: '' }),
   }),
-  defineBlock<Record<string, unknown>>({
+  defineBlock({
     type: 'IMAGE',
     label: 'Image',
     icon: Image,
@@ -47,7 +47,7 @@ export const coreBlocks: AnyBlockDefinition[] = [
     preview: ImagePreview,
     initialData: () => ({ storageKey: '', alt: '' }),
   }),
-  defineBlock<Record<string, unknown>>({
+  defineBlock({
     type: 'FILE',
     label: 'File',
     icon: Paperclip,

@@ -14,8 +14,12 @@ export type BlockDefinition<D extends object = Record<string, unknown>> = {
    * markdown pipeline, a chart) without Quoin depending on one.
    */
   preview?: ComponentType<BlockPreviewProps<D>>;
-  /** Called when a new block of this type is inserted, to seed its data. */
-  initialData?: () => D;
+  /**
+   * Called when a new block of this type is inserted, to seed its data.
+   * `NoInfer` keeps `D` inferred from `editor` and `preview` alone, so the seed is checked
+   * against the editor's data type instead of widening it.
+   */
+  initialData?: () => NoInfer<D>;
   /** Whether the block is offered in the slash palette and inserter; defaults to true. */
   inSlashPalette?: boolean;
 };
@@ -27,6 +31,8 @@ export type AnyBlockDefinition = BlockDefinition<Record<string, unknown>>;
  * Types `data` inside your editor component, then erases the generic on the way out.
  * The erasure is deliberate: `D` appears in both covariant and contravariant positions
  * on `editor`, so without it an array of differently-shaped definitions will not typecheck.
+ * `initialData` is checked against the editor's data type. That relies on `NoInfer`, so
+ * TypeScript 5.4 or later is required.
  */
 export function defineBlock<D extends object>(definition: BlockDefinition<D>): AnyBlockDefinition {
   return definition as unknown as AnyBlockDefinition;

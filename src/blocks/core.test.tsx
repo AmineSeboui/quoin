@@ -34,4 +34,21 @@ describe('coreBlocks', () => {
     );
     expect(screen.getByLabelText('Markdown')).toHaveValue('hello');
   });
+
+  it.each(coreBlocks.map((b) => [b.type, b] as const))(
+    'mounts the %s editor and preview on its own initialData',
+    (_type, block) => {
+      const data = block.initialData?.() ?? {};
+      const { editor: Editor, preview: Preview } = block;
+      expect(Preview).toBeDefined();
+      expect(() =>
+        render(
+          <QuoinProvider value={{ blockTypes: coreBlocks }}>
+            <Editor data={data} onChange={() => {}} />
+            {Preview && <Preview data={data} />}
+          </QuoinProvider>,
+        ),
+      ).not.toThrow();
+    },
+  );
 });
