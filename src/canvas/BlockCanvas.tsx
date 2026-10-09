@@ -147,7 +147,7 @@ function Canvas({
   const rootProps = {
     ref: listRef,
     id,
-    className: cn('flex flex-col', className),
+    className: cn('quoin flex flex-col', className),
     role: ariaLabel ? 'group' : undefined,
     'aria-label': ariaLabel,
   };

@@ -89,7 +89,9 @@ export function AutosavingEditor({ initial }: { initial: QuoinBlock[] }) {
 
 You can hand the canvas a new `blocks` array at any time to load, undo or merge a document. A new array replaces what the canvas shows when it differs from the last array you supplied.
 
-An array that is structurally equal to the last one you supplied is ignored. That means a "discard changes" button that re-supplies the original document does nothing, because from the canvas's point of view you gave it the same document you already gave it. To force a reset, remount the canvas with a React `key`.
+When you echo `onChange` back into `blocks`, as every sample above does, the last array you supplied is the edited document, so `setBlocks(saved)` differs from it and resets the canvas with nothing more to do.
+
+The case that needs care is a host that does not echo edits back. There, the last array you supplied is still the original, and an array structurally equal to it is ignored: a "discard changes" button that re-supplies the original document does nothing. To force a reset, remount the canvas with a React `key`. The sample below uses a `key` so it works either way.
 
 ```tsx
 import { useState } from 'react';
@@ -215,7 +217,7 @@ A definition has these fields:
 | --- | --- | --- |
 | `type` | yes | The string stored on each block. It is how the registry finds the definition. |
 | `label` | yes | The name shown in menus and the slash palette. |
-| `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react`; add it to your own dependencies to import icons. |
+| `icon` | yes | A [lucide](https://lucide.dev) icon component. Quoin depends on `lucide-react@^1`; add that same major to your own dependencies to import icons, so you do not end up with a second copy and mismatched icon types. |
 | `editor` | yes | The editing surface. It receives `data` and `onChange`. Call `onChange` with the whole next `data`, not a patch. |
 | `preview` | no | What the block shows when it is not being edited. Omit it for an edit-only block. |
 | `initialData` | no | Seeds `data` when a block of this type is inserted. It is checked against the editor's data type. |
@@ -345,7 +347,23 @@ A project that already defines shadcn-style tokens with these names inherits its
 
 Dark mode keys on a `.dark` class on an ancestor (for example `<html class="dark">`), not on `prefers-color-scheme`. Quoin redefines the same variables under `.dark`, and its `dark:` variants follow the same class, so the two cannot disagree when a visitor's OS theme differs from your app's theme.
 
-The stylesheet includes Tailwind's base reset. Everything in it sits inside cascade layers, so any unlayered CSS in your app takes precedence over it.
+Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins, unstyled lists and form controls) applies only inside a `.quoin` element: the canvas root, and the menus, palette, select and dialog that Quoin renders into `document.body`, which carry the class themselves. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
+
+All of Quoin's own rules are in cascade layers, so an **unlayered** global reset of yours beats them. A host that ships one (Bootstrap's reboot, or a hand-rolled `* { margin: 0; padding: 0; border: 0 }`) will see Quoin's padding and borders vanish. Tailwind 4's preflight is itself layered and is fine. Either declare your reset in a layer that comes before Quoin's, or scope it away from `.quoin`:
+
+```css
+@layer reset, theme, base, components, utilities;
+
+@layer reset {
+  * { margin: 0; padding: 0; border: 0; }
+}
+```
+
+```css
+*:where(:not(.quoin, .quoin *)) { margin: 0; padding: 0; border: 0; }
+```
+
+The layer statement has to come before Quoin's stylesheet is parsed, so put it first in your own CSS or in an inline `<style>` in the document head.
 
 ## Headless
 

@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
 @import "tw-animate-css";
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
@@ -9,6 +11,68 @@
 @source "./";
 
 @layer base {
+  /* Tailwind's preflight would reset the host's whole page, and browser defaults sit below every
+     author layer, so a host could not restore what it never wrote. This reset is scoped to .quoin.
+     Portalled content (menus, the palette, dialogs) renders outside that root, so those elements
+     carry the class themselves. */
+  .quoin,
+  .quoin *,
+  .quoin::before,
+  .quoin::after,
+  .quoin::backdrop,
+  .quoin *::before,
+  .quoin *::after,
+  .quoin *::backdrop {
+    box-sizing: border-box;
+    border: 0 solid;
+    margin: 0;
+    padding: 0;
+  }
+
+  .quoin {
+    line-height: 1.5;
+  }
+
+  .quoin ul,
+  .quoin ol {
+    list-style: none;
+  }
+
+  .quoin button,
+  .quoin input,
+  .quoin select,
+  .quoin textarea {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .quoin img,
+  .quoin svg {
+    display: block;
+    vertical-align: middle;
+  }
+
+  .quoin img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .quoin textarea {
+    resize: vertical;
+  }
+
+  .quoin code,
+  .quoin pre {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 1em;
+  }
+
+  .quoin ::placeholder {
+    opacity: 1;
+  }
+
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
