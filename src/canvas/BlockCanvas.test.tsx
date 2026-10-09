@@ -70,9 +70,12 @@ describe('BlockCanvas', () => {
     expect(screen.getByRole('listitem')).toBeInTheDocument();
   });
 
-  it('renders nothing for an unregistered block type instead of crashing', () => {
-    render(<BlockCanvas blocks={[{ id: 'z', type: 'GONE', data: {} }]} onChange={() => {}} />);
+  it('draws an unregistered block type instead of an empty row, and reports it', () => {
+    const onError = vi.fn();
+    render(<BlockCanvas blocks={[{ id: 'z', type: 'GONE', data: {} }]} onChange={() => {}} onError={onError} />);
     expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByText('GONE')).toBeInTheDocument();
+    expect(onError).toHaveBeenCalledTimes(1);
   });
 
   it('accepts a blocks array supplied from outside after mount', async () => {

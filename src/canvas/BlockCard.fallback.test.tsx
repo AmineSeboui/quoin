@@ -1,11 +1,13 @@
-import { screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
 import { Hash } from 'lucide-react';
 import { coreBlocks } from '../blocks/core';
 import { defineBlock } from '../registry';
 import { BlockCard } from './BlockCard';
+import { QuoinProvider } from '../context';
 import { renderCanvas } from '../../test/support/render-canvas';
+import type { QuoinBlock } from '../types';
 
 const chart = defineBlock({
   type: 'CHART',
@@ -53,6 +55,41 @@ describe('BlockCard for a definition with no preview', () => {
   it('has no accessibility violations', async () => {
     const { container } = renderCanvas(<BlockCard block={block} index={0} onUpdate={vi.fn()} />, types);
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe('BlockCard for a type no definition claims', () => {
+  const orphan: QuoinBlock = { id: 'o', type: 'BOOKMARK', data: { url: 'https://example.com' } };
+
+  const onError = vi.fn();
+  const card = (shown: QuoinBlock, index: number, readOnly = false) => (
+    <QuoinProvider value={{ blockTypes: types, onError }}>
+      <BlockCard block={shown} index={index} readOnly={readOnly} onUpdate={vi.fn()} />
+    </QuoinProvider>
+  );
+
+  beforeEach(() => onError.mockClear());
+
+  it('draws the raw type so the row is not silently empty', () => {
+    render(card(orphan, 0));
+    expect(screen.getByText('BOOKMARK')).toBeInTheDocument();
+  });
+
+  it('draws it in read-only mode too', () => {
+    render(card(orphan, 0, true));
+    expect(screen.getByText('BOOKMARK')).toBeInTheDocument();
+  });
+
+  it('tells the host once, naming the type', () => {
+    const { rerender } = render(card(orphan, 0));
+    rerender(card(orphan, 1));
+    expect(onError).toHaveBeenCalledTimes(1);
+    expect(onError.mock.calls[0][0].message).toContain('BOOKMARK');
+  });
+
+  it('says nothing about a type that is registered', () => {
+    render(card(block, 0));
+    expect(onError).not.toHaveBeenCalled();
   });
 });
 

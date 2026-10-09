@@ -41,7 +41,7 @@ function BlockCardImpl({
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onInsertBlock?: (index: number, type: string) => void;
 }) {
-  const { blockTypes } = useQuoin();
+  const { blockTypes, onError } = useQuoin();
   const definition = blockByType(blockTypes, block.type);
   const Preview = definition?.preview;
   const [editing, setEditing] = React.useState(editingByDefault && !readOnly);
@@ -143,6 +143,16 @@ function BlockCardImpl({
     editButtonRef.current?.focus();
   }, [editing]);
 
+  // A block whose type no host registered draws its type rather than nothing, so a
+  // document authored with a plugin block does not look empty, and the host is told
+  // once per type instead of on every render.
+  const reportedType = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (definition || reportedType.current === block.type) return;
+    reportedType.current = block.type;
+    onError(new Error(`No block type is registered for "${block.type}".`));
+  }, [definition, block.type, onError]);
+
   if (definition?.alwaysEditing && !readOnly) {
     return (
       <BlockEditor
@@ -187,9 +197,9 @@ function BlockCardImpl({
 
   const rest = Preview ? (
     <Preview data={block.data} blockId={block.id} />
-  ) : definition ? (
-    <p className="py-1 text-sm text-muted-foreground">{definition.label}</p>
-  ) : null;
+  ) : (
+    <p className="py-1 text-sm text-muted-foreground">{definition?.label ?? block.type}</p>
+  );
 
   if (readOnly) return <div>{rest}</div>;
 

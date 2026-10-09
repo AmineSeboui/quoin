@@ -227,14 +227,24 @@ describe('BlockCard', () => {
     expect(screen.queryByText('No image chosen')).not.toBeInTheDocument();
   });
 
-  it('renders an empty card instead of crashing for a type no one registered', () => {
-    const { container } = setup({ id: 'x', type: 'REMOVED', data: {} });
+  it('draws the raw type for a block no one registered, and reports it', () => {
+    const onError = vi.fn();
+    renderCanvas(
+      <BlockCard block={{ id: 'x', type: 'REMOVED', data: {} }} index={0} onUpdate={vi.fn()} />,
+      richBlocks,
+      onError,
+    );
+    expect(screen.getByText('REMOVED')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit block 1' })).toBeInTheDocument();
-    expect(container.querySelector('p')).toBeNull();
+    expect(onError).toHaveBeenCalledTimes(1);
   });
 
   it('renders nothing while editing a type no one registered', () => {
-    setup({ id: 'x', type: 'REMOVED', data: {} }, true);
+    renderCanvas(
+      <BlockCard block={{ id: 'x', type: 'REMOVED', data: {} }} index={0} editingByDefault onUpdate={vi.fn()} />,
+      richBlocks,
+      vi.fn(),
+    );
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
