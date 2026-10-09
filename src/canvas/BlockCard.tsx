@@ -27,6 +27,7 @@ function BlockCardImpl({
   block,
   index,
   editingByDefault = false,
+  readOnly = false,
   initialSelection = null,
   onUpdate,
   onInsertBlock,
@@ -34,6 +35,8 @@ function BlockCardImpl({
   block: QuoinBlock;
   index: number;
   editingByDefault?: boolean;
+  /** Draws the block at rest and never opens an editor, for a canvas that is only being read. */
+  readOnly?: boolean;
   initialSelection?: { start: number; end: number } | null;
   onUpdate: (id: string, data: Record<string, unknown>) => void;
   onInsertBlock?: (index: number, type: string) => void;
@@ -41,7 +44,7 @@ function BlockCardImpl({
   const { blockTypes } = useQuoin();
   const definition = blockByType(blockTypes, block.type);
   const Preview = definition?.preview;
-  const [editing, setEditing] = React.useState(editingByDefault);
+  const [editing, setEditing] = React.useState(editingByDefault && !readOnly);
   const editButtonRef = React.useRef<HTMLButtonElement>(null);
   const editorContainerRef = React.useRef<HTMLDivElement>(null);
   const returnFocusOnClose = React.useRef(false);
@@ -140,7 +143,7 @@ function BlockCardImpl({
     editButtonRef.current?.focus();
   }, [editing]);
 
-  if (definition?.alwaysEditing) {
+  if (definition?.alwaysEditing && !readOnly) {
     return (
       <BlockEditor
         type={block.type}
@@ -182,6 +185,14 @@ function BlockCardImpl({
     );
   }
 
+  const rest = Preview ? (
+    <Preview data={block.data} blockId={block.id} />
+  ) : definition ? (
+    <p className="py-1 text-sm text-muted-foreground">{definition.label}</p>
+  ) : null;
+
+  if (readOnly) return <div>{rest}</div>;
+
   return (
     <div className="group/card relative">
       <div
@@ -194,7 +205,7 @@ function BlockCardImpl({
           setEditing(true);
         }}
       >
-        {Preview ? <Preview data={block.data} blockId={block.id} /> : null}
+        {rest}
       </div>
       <Button
         ref={editButtonRef}

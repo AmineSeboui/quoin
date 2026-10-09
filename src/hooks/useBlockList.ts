@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { QuoinBlock } from '../types';
 
+/** Handed back by `remove` and accepted by `undo` to restore that one block. */
 export type UndoToken = number;
 
 type Removed = { block: QuoinBlock; index: number };
@@ -71,6 +72,7 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+/** The document plus every way to change it; `reset` replaces the whole document and voids outstanding undo tokens. */
 export type BlockList = {
   blocks: QuoinBlock[];
   insertAt: (index: number, type: string, data?: Record<string, unknown>) => string;
@@ -82,6 +84,7 @@ export type BlockList = {
   reset: (blocks: QuoinBlock[]) => void;
 };
 
+/** Holds a document in a reducer and returns its blocks with insert, update, remove, undo, move, reorder and reset. Reads `initial` once. */
 export function useBlockList(initial: QuoinBlock[]): BlockList {
   const [state, dispatch] = React.useReducer(reducer, { blocks: initial, removals: new Map() });
 
