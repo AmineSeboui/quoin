@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { shouldOpenPalette } from './slash-trigger';
 
 const at = (value: string, caret: number) => shouldOpenPalette(value, caret, caret);

@@ -1,3 +1,4 @@
+/** A text transform result: the next value and where the selection should land. */
 export type Edit = { value: string; selectionStart: number; selectionEnd: number };
 
 function changedSpan(before: string, after: string) {
@@ -31,6 +32,7 @@ function writeNatively(el: HTMLTextAreaElement, replacement: string): boolean {
   }
 }
 
+/** Applies an edit to a textarea through the native undo stack when the browser allows it, so Ctrl+Z still works. */
 export function applyEdit(
   el: HTMLTextAreaElement,
   edit: Edit,

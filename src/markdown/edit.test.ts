@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { applyEdit, type Edit } from './edit';
 
 function textarea(value: string, selectionStart = value.length): HTMLTextAreaElement {

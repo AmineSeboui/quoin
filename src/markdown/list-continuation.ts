@@ -42,6 +42,7 @@ function climbOut(value: string, line: Line, indent: string, marker: string, con
   };
 }
 
+/** Continues a list item on Enter, or climbs out of the list on an empty item or Backspace at the marker; returns null when the caret is not in a list item or is inside a code fence, so the default key behaviour runs. */
 export function continueList(
   value: string,
   caret: number,

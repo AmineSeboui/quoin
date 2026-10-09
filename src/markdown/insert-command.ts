@@ -1,8 +1,16 @@
-import type { TextCommand } from './commands';
 import type { Edit } from './edit';
 import { lineAt } from './line-at';
 
-export function insertCommand(command: TextCommand, value: string, caret: number): Edit {
+/** The fields `insertCommand` needs. `TextCommand` satisfies this structurally. */
+export type InsertableCommand = {
+  insert: string;
+  caretOffset: number;
+  selectLength?: number;
+  separate: boolean;
+};
+
+/** Inserts a command's markdown at the caret, starting a new line (or a blank line if it asks) when the caret is mid-line. */
+export function insertCommand(command: InsertableCommand, value: string, caret: number): Edit {
   const line = lineAt(value, caret);
   const before = value.slice(line.start, caret).replace(/[ \t]+$/, '');
   const cut = line.start + before.length;

@@ -41,11 +41,13 @@ const COPIED: CopiedProperty[] = [
   'borderTopWidth',
 ];
 
+/** The caret's position and line height, in pixels relative to the textarea's top left corner. */
 export type CaretRect = { top: number; left: number; height: number };
 
 /** A textarea exposes no caret geometry, so the text before the caret is laid
  *  out again in a hidden div that copies the box's own metrics, and a marker at
- *  the end of it is measured. */
+ *  the end of it is measured. Returns null when the textarea is not laid out
+ *  (hidden or detached), because there is nothing to measure. */
 export function caretRect(el: HTMLTextAreaElement): CaretRect | null {
   if (el.offsetWidth === 0) return null;
 

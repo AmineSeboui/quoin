@@ -1,5 +1,6 @@
 import { insideFence } from './line-at';
 
+/** Whether typing "/" here should open the command palette: only at a word start, with no selection and outside a code fence. */
 export function shouldOpenPalette(
   value: string,
   selectionStart: number,

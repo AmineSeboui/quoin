@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { continueList } from './list-continuation';
 
 const enter = (value: string, caret: number) => continueList(value, caret, 'Enter');

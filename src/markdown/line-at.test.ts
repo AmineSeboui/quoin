@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { insideFence, isFenceDelimiter, lineAt } from './line-at';
 
 describe('lineAt', () => {

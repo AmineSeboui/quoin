@@ -12,6 +12,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+/** A slash-palette entry: how it is shown and searched, and the markdown it inserts. */
 export type TextCommand = {
   id: string;
   label: string;
@@ -28,6 +29,7 @@ export type TextCommand = {
 
 const TABLE = ['| Column | Column |', '| --- | --- |', '|  |  |'].join('\n');
 
+/** The built-in slash-palette commands, in display order. */
 export const TEXT_COMMANDS: TextCommand[] = [
   {
     id: 'heading',

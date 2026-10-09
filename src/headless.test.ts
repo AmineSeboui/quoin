@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'vitest';
 import { wrapSelection, continueList, shouldOpenPalette } from './headless';
 
 describe('headless entry', () => {

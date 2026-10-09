@@ -6,6 +6,7 @@ function onMac(): boolean {
   return /Mac|iPhone|iPad/.test(navigator.userAgent);
 }
 
+/** Renders a "mod+shift+b" style hint as the platform's own label, such as ⌘⇧B on a Mac and Ctrl+Shift+B elsewhere. */
 export function formatShortcut(hint: string): string {
   const mac = onMac();
   const labels = mac ? MAC_LABEL : OTHER_LABEL;

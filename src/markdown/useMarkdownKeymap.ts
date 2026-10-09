@@ -12,6 +12,7 @@ const WRAP: Record<string, WrapKind> = { b: 'bold', i: 'italic', e: 'code', k: '
 const HEADING: Record<string, LinePrefix> = { Digit1: 'h1', Digit2: 'h2', Digit3: 'h3' };
 const LIST: Record<string, LinePrefix> = { Digit7: 'ordered', Digit8: 'bullet' };
 
+/** Keyboard and paste handlers that give a plain textarea markdown shortcuts, list continuation, Tab indent and the slash palette trigger. */
 export function useMarkdownKeymap({
   commit,
   onOpenPalette,

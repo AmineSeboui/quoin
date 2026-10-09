@@ -1,5 +1,6 @@
 import type { Edit } from './edit';
 
+/** An inline markdown wrapper: bold, italic, code or a link. */
 export type WrapKind = 'bold' | 'italic' | 'code' | 'link';
 
 const DELIMITER: Record<Exclude<WrapKind, 'link'>, string> = {
@@ -60,6 +61,7 @@ function link(value: string, start: number, end: number): Edit {
   };
 }
 
+/** Wraps the selection in the markers for the kind, or removes them when it is already wrapped. */
 export function wrapSelection(
   kind: WrapKind,
   value: string,
@@ -91,6 +93,7 @@ export function wrapSelection(
   };
 }
 
+/** Turns a pasted URL over a selection into a markdown link; returns null when nothing is selected or the paste is not a bare URL, so the paste goes through unchanged. */
 export function linkPaste(
   value: string,
   selectionStart: number,

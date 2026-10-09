@@ -17,6 +17,7 @@ function shift(text: string, direction: 1 | -1, cap: number | undefined): string
   return INDENT + text;
 }
 
+/** Indents or outdents the selected list items; returns null when the selection is not entirely list items, is inside a code fence, or cannot move further, so Tab keeps its default behaviour. */
 export function indentList(
   value: string,
   selectionStart: number,

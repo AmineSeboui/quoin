@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { TEXT_COMMANDS } from './commands';
 import { insertCommand } from './insert-command';
 

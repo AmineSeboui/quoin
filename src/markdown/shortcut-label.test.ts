@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { formatShortcut } from './shortcut-label';
 
 function userAgent(value: string) {

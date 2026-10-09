@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { toggleLinePrefix } from './line-toggles';
 
 describe('toggleLinePrefix', () => {

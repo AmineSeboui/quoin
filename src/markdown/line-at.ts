@@ -2,6 +2,7 @@ const FENCE = /^ {0,3}(```|~~~)/;
 
 export type Line = { start: number; end: number; text: string };
 
+/** The line containing the offset, with its start and end offsets and its text (no trailing newline). */
 export function lineAt(value: string, offset: number): Line {
   const start = value.lastIndexOf('\n', offset - 1) + 1;
   const next = value.indexOf('\n', offset);

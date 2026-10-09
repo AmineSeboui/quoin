@@ -1,6 +1,7 @@
 import type { Edit } from './edit';
 import { insideFence, isFenceDelimiter, lineAt } from './line-at';
 
+/** A line-level markdown prefix: a heading level, a bullet or a numbered item. */
 export type LinePrefix = 'h1' | 'h2' | 'h3' | 'bullet' | 'ordered';
 
 const EXISTING = /^(\s*)(?:#{1,6} |[-*+] \[[ xX]\] |[-*+] |\d+[.)] )?/;
@@ -21,6 +22,7 @@ const CARRIES: Record<LinePrefix, RegExp> = {
   ordered: /^\s*\d+[.)] /,
 };
 
+/** Adds the prefix to every line in the selection, or removes it when every line already carries it; fenced code is left alone. */
 export function toggleLinePrefix(
   kind: LinePrefix,
   value: string,
