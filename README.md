@@ -230,6 +230,46 @@ A definition has these fields:
 
 A definition that sets `alwaysEditing` should also supply a `preview`. A `readOnly` canvas draws the preview and never the editor, so without a preview the block's content is invisible there.
 
+### Reaching uploads from a custom block
+
+A block editor receives only `data` and `onChange`. The canvas configuration reaches it through `useQuoin()`, which returns `blockTypes`, `upload`, `resolveAssetUrl` and `onError`. It throws outside a `QuoinProvider`, so call it from a block the canvas is rendering.
+
+```tsx
+import { useQuoin, type BlockEditorProps } from 'quoin-editor';
+
+type AttachmentData = { storageKey: string; filename: string };
+
+export function AttachmentEditor({ data, onChange }: BlockEditorProps<AttachmentData>) {
+  const { upload, resolveAssetUrl, onError } = useQuoin();
+
+  async function store(file: File) {
+    if (!upload) return;
+    try {
+      const stored = await upload(file, 'attachment');
+      onChange({ storageKey: stored.storageKey, filename: stored.filename });
+    } catch (error) {
+      onError(error instanceof Error ? error : new Error('The upload failed.'));
+    }
+  }
+
+  return (
+    <div>
+      {data.storageKey !== '' && <a href={resolveAssetUrl(data.storageKey)}>{data.filename}</a>}
+      <input
+        type="file"
+        disabled={!upload}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void store(file);
+        }}
+      />
+    </div>
+  );
+}
+```
+
+`upload` is absent when the host wired none, which is why the control above disables itself rather than failing on the pick. `resolveAssetUrl` defaults to returning the key unchanged, and `onError` to `console.error`.
+
 The preview is also how you bring your own markdown renderer. Register a `MARKDOWN` definition last, reuse the core editor, and swap the preview:
 
 ```tsx
