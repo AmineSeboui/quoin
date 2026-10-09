@@ -41,14 +41,14 @@ A document is an array of `QuoinBlock`, each `{ id, type, data }`. Five block ty
 
 `BlockCanvas` behaves like a controlled `<input value onChange>`. Update `blocks` synchronously from `onChange`.
 
-If you apply the edit late, typing reverts. A debounce, a `startTransition`, or an async store all break the contract for the same reason a debounced parent breaks a controlled input: the canvas renders the keystroke, your state has not caught up, and the next render hands the old document back.
+Applying the edit late is tolerated, as long as what you eventually hand back is one of the arrays the canvas gave you. It recognises its own output even when the echo is several keystrokes behind, so `startTransition` and a debounced `setBlocks` both keep typing intact.
 
 ```tsx
 import { startTransition, useState } from 'react';
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
 import 'quoin-editor/styles.css';
 
-export function BrokenEditor() {
+export function TransitionEditor() {
   const [blocks, setBlocks] = useState<QuoinBlock[]>([]);
   return (
     <BlockCanvas
@@ -58,6 +58,8 @@ export function BrokenEditor() {
   );
 }
 ```
+
+What breaks is a store that rebuilds the document on the way through, so what comes back is a structural copy rather than the array the canvas emitted. Arriving behind the canvas's own state, that copy reads as a foreign document and replaces live text with an older snapshot. The damage is not a clean revert: the characters the snapshot predates are dropped and the ones typed after them are kept, so `ZZTYPED hello world` can land as `ZZYED hello wold`. A Redux or Zustand round trip that clones the document, and a server-synced store, are the usual sources.
 
 Debounce the side effect, not the state. `useAutosave` does exactly that: it tracks the values you give it, waits for the edits to settle, then calls your `save`, and it retries a failed save with exponential backoff.
 
