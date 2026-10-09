@@ -22,7 +22,11 @@ export type BlockDefinition<D extends object = Record<string, unknown>> = {
   initialData?: () => NoInfer<D>;
   /** Whether the block is offered in the slash palette and inserter; defaults to true. */
   inSlashPalette?: boolean;
-  /** Renders this block's editor permanently instead of a preview you click to edit. */
+  /**
+   * Renders this block's editor permanently instead of a preview you click to edit.
+   * Also supply a `preview`: a read-only canvas draws the preview rather than the editor,
+   * so without one the block's content is invisible there.
+   */
   alwaysEditing?: boolean;
 };
 

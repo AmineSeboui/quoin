@@ -127,6 +127,67 @@ describe('BlockCanvas', () => {
     expect(screen.getByLabelText('Markdown')).toHaveValue('# Title!?');
   });
 
+  it('keeps an edit when the host rebuilds an equal array on an unrelated re-render', async () => {
+    const user = userEvent.setup();
+    function Host() {
+      const [ticks, setTicks] = React.useState(0);
+      return (
+        <>
+          <button onClick={() => setTicks(ticks + 1)}>tick {ticks}</button>
+          <BlockCanvas blocks={blocks.map((b) => ({ ...b, data: { ...b.data } }))} onChange={() => {}} />
+        </>
+      );
+    }
+    render(<Host />);
+    await user.click(screen.getByText('# Title'));
+    await user.type(screen.getByLabelText('Markdown'), '!');
+    await user.click(screen.getByRole('button', { name: /tick/ }));
+    expect(screen.getByText('# Title!')).toBeInTheDocument();
+  });
+
+  it('accepts a host undo that replays an older emitted array', async () => {
+    const user = userEvent.setup();
+    function Host() {
+      const [current, setBlocks] = React.useState<QuoinBlock[]>(blocks);
+      const history = React.useRef<QuoinBlock[][]>([]);
+      return (
+        <>
+          <button onClick={() => setBlocks(history.current[0])}>undo</button>
+          <BlockCanvas
+            blocks={current}
+            onChange={(next) => {
+              history.current.push(next);
+              setBlocks(next);
+            }}
+          />
+        </>
+      );
+    }
+    render(<Host />);
+    await user.click(screen.getByText('# Title'));
+    await user.type(screen.getByLabelText('Markdown'), '!?');
+    expect(screen.getByLabelText('Markdown')).toHaveValue('# Title!?');
+    await user.click(screen.getByRole('button', { name: 'undo' }));
+    expect(screen.getByText('# Title!')).toBeInTheDocument();
+  });
+
+  it('merges a passed className with its own classes and forwards id and aria-label', () => {
+    render(<BlockCanvas blocks={blocks} onChange={() => {}} className="my-canvas" id="doc" aria-label="Notes" />);
+    const root = screen.getByRole('group', { name: 'Notes' });
+    expect(root).toHaveClass('my-canvas', 'flex', 'flex-col');
+    expect(root).toHaveAttribute('id', 'doc');
+  });
+
+  it('merges a passed className in read-only mode too', () => {
+    const { container } = render(<BlockCanvas blocks={blocks} onChange={() => {}} readOnly className="my-canvas" />);
+    expect(container.firstElementChild).toHaveClass('my-canvas', 'flex', 'flex-col');
+  });
+
+  it('adds no group role when there is no label', () => {
+    render(<BlockCanvas blocks={blocks} onChange={() => {}} />);
+    expect(screen.queryByRole('group')).not.toBeInTheDocument();
+  });
+
   it('renders no editing affordances in read-only mode', () => {
     render(<BlockCanvas blocks={blocks} onChange={() => {}} readOnly />);
     expect(screen.queryByRole('button', { name: /insert a block/i })).not.toBeInTheDocument();

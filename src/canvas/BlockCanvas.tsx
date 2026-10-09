@@ -17,16 +17,24 @@ import { blockByType, type AnyBlockDefinition } from '../registry';
 import { coreBlocks } from '../blocks/core';
 import type { QuoinBlock, UploadFn } from '../types';
 import { useBlockList } from '../hooks/useBlockList';
+import { cn } from '../ui/cn';
 import { buildAnnouncements } from './announcements';
 import { BlockActionsMenu } from './BlockActionsMenu';
 import { BlockCard } from './BlockCard';
 import { BlockInserter } from './BlockInserter';
 import { DocumentStarter } from './DocumentStarter';
 import { reorderIndices } from './reorder-indices';
+import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
 
 /** Props for `BlockCanvas`; `blocks` and `onChange` are the whole document contract. */
 export type BlockCanvasProps = {
+  /**
+   * The document. Update it synchronously from `onChange`, as with a controlled `<input value onChange>`:
+   * a host that applies edits late (a debounce, a transition, an async store) will see typing revert,
+   * and should treat the canvas as uncontrolled by passing the initial document and ignoring later echoes.
+   * A new array that differs from what the canvas shows replaces it, which is how a host loads, undoes or merges.
+   */
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
   /** Defaults to the five core block types. Pass `[...coreBlocks, yours]` to extend them. */
@@ -36,6 +44,11 @@ export type BlockCanvasProps = {
   onError?: (error: Error) => void;
   /** Renders the document with no inserters, menus, drag handles or editors. */
   readOnly?: boolean;
+  /** Added to the root element's own classes rather than replacing them. */
+  className?: string;
+  id?: string;
+  /** Names the document for assistive technology; the root then becomes a labelled group. */
+  'aria-label'?: string;
 };
 
 type Selection = { start: number; end: number };
@@ -45,7 +58,12 @@ function Canvas({
   onChange,
   blockTypes,
   readOnly,
-}: Pick<BlockCanvasProps, 'blocks' | 'onChange' | 'readOnly'> & { blockTypes: AnyBlockDefinition[] }) {
+  className,
+  id,
+  'aria-label': ariaLabel,
+}: Pick<BlockCanvasProps, 'blocks' | 'onChange' | 'readOnly' | 'className' | 'id' | 'aria-label'> & {
+  blockTypes: AnyBlockDefinition[];
+}) {
   const list = useBlockList(blocks);
   const { insertAt, update, remove, move, reorder, reset } = list;
   const sensors = useSensors(
@@ -65,9 +83,10 @@ function Canvas({
   // The reducer reads `blocks` once, so the two effects below carry the document
   // across the boundary in both directions. An array this canvas emitted is
   // recognised when the host hands it back and is not reset; an array the host
-  // supplies is foreign and is. Seeding the ref with the first `blocks` keeps
+  // supplies is foreign and is. Seeding the refs with the first `blocks` keeps
   // mounting from reporting a change nobody made.
   const lastEmitted = React.useRef<QuoinBlock[]>(blocks);
+  const lastSupplied = React.useRef<QuoinBlock[]>(blocks);
 
   React.useEffect(() => {
     if (list.blocks === lastEmitted.current) return;
@@ -76,7 +95,12 @@ function Canvas({
   }, [list.blocks, onChange]);
 
   React.useEffect(() => {
+    const previous = lastSupplied.current;
+    lastSupplied.current = blocks;
     if (blocks === lastEmitted.current) return;
+    // A host that builds a fresh array on every render, without echoing edits, would
+    // otherwise wipe them on any unrelated re-render. An undo replays a different array.
+    if (sameBlocks(blocks, previous) || sameBlocks(blocks, list.blocks)) return;
     lastEmitted.current = blocks;
     reset(blocks);
   }, [blocks, reset]);
@@ -115,13 +139,21 @@ function Canvas({
     if (result) reorder(result.from, result.to);
   }
 
+  const rootProps = {
+    ref: listRef,
+    id,
+    className: cn('flex flex-col', className),
+    role: ariaLabel ? 'group' : undefined,
+    'aria-label': ariaLabel,
+  };
+
   if (readOnly) {
     return (
-      <div ref={listRef} className="flex flex-col">
+      <div {...rootProps}>
         <ul className="flex flex-col">
           {list.blocks.map((b, i) => (
             <li key={b.id}>
-              <div data-testid="editor-block" data-block-index={i} className="rounded-lg px-2 py-1">
+              <div data-block-index={i} className="rounded-lg px-2 py-1">
                 <BlockCard block={b} index={i} editingByDefault={false} readOnly onUpdate={update} />
               </div>
             </li>
@@ -132,7 +164,7 @@ function Canvas({
   }
 
   return (
-    <div ref={listRef} className="flex flex-col">
+    <div {...rootProps}>
       <BlockInserter index={0} onInsert={insertPlain} label="Insert a block at the start" />
       <DndContext
         id={dndId}
@@ -199,6 +231,9 @@ export function BlockCanvas({
   resolveAssetUrl,
   onError,
   readOnly = false,
+  className,
+  id,
+  'aria-label': ariaLabel,
 }: BlockCanvasProps) {
   const config = React.useMemo(
     () => ({ blockTypes, upload, resolveAssetUrl, onError }),
@@ -206,7 +241,15 @@ export function BlockCanvas({
   );
   return (
     <QuoinProvider value={config}>
-      <Canvas blocks={blocks} onChange={onChange} blockTypes={blockTypes} readOnly={readOnly} />
+      <Canvas
+        blocks={blocks}
+        onChange={onChange}
+        blockTypes={blockTypes}
+        readOnly={readOnly}
+        className={className}
+        id={id}
+        aria-label={ariaLabel}
+      />
     </QuoinProvider>
   );
 }

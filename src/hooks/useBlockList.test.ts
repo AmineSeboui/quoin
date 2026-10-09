@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { renderHook, act } from '@testing-library/react';
 import { useBlockList } from './useBlockList';
+import type { QuoinBlock } from '../types';
 
 const initial = [
   { id: 'a', type: 'MARKDOWN', data: { markdown: 'one' } },
@@ -168,5 +169,45 @@ describe('useBlockList', () => {
     });
     act(() => result.current.undo(token));
     expect(result.current.blocks.map((b) => b.id)).toEqual(['z']);
+  });
+});
+
+describe('useBlockList block ids across page loads', () => {
+  // A fresh module registry stands in for a page reload: nothing a previous load
+  // held in module state survives it, which is when a counter would restart.
+  async function mountOnFreshPage(initialBlocks: QuoinBlock[]) {
+    vi.resetModules();
+    const { renderHook, act } = await import('@testing-library/react');
+    const { useBlockList: freshUseBlockList } = await import('./useBlockList');
+    const view = renderHook(() => freshUseBlockList(initialBlocks));
+    return { view, act };
+  }
+
+  it('never mints the same id on two separate page loads', async () => {
+    const first = await mountOnFreshPage([]);
+    first.act(() => first.view.result.current.insertAt(0, 'CALLOUT'));
+    const second = await mountOnFreshPage([]);
+    second.act(() => second.view.result.current.insertAt(0, 'CALLOUT'));
+    expect(second.view.result.current.blocks[0].id).not.toBe(first.view.result.current.blocks[0].id);
+  });
+
+  it('does not collide with ids that were persisted by an earlier load', async () => {
+    const first = await mountOnFreshPage([]);
+    first.act(() => first.view.result.current.insertAt(0, 'CALLOUT'));
+    first.act(() => first.view.result.current.insertAt(0, 'CODE'));
+    const persisted = first.view.result.current.blocks;
+
+    const second = await mountOnFreshPage(persisted);
+    second.act(() => second.view.result.current.insertAt(0, 'CALLOUT'));
+    second.act(() => second.view.result.current.insertAt(0, 'CODE'));
+    const ids = second.view.result.current.blocks.map((b) => b.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('does not collide with a persisted legacy sequential id', async () => {
+    const second = await mountOnFreshPage([{ id: 'new-1', type: 'CODE', data: {} }]);
+    second.act(() => second.view.result.current.insertAt(0, 'CALLOUT'));
+    const ids = second.view.result.current.blocks.map((b) => b.id);
+    expect(new Set(ids).size).toBe(2);
   });
 });

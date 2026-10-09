@@ -23,11 +23,8 @@ export type UseAutosaveResult = {
 
 /**
  * Debounced last-write-wins autosave. Nothing fires on mount, only after the first
- * real edit, and a rejected save backs off exponentially until it lands.
- *
- * The effect order below is load-bearing: the dirty flag must be set before the
- * scheduling effect reads it within the same commit, and the "latest closure" refs
- * must be assigned after commit rather than during render.
+ * real edit, and a rejected save backs off exponentially until it lands. `save` and
+ * `build` are read at fire time, so passing fresh closures each render is safe.
  */
 export function useAutosave<T>({
   deps,
@@ -36,6 +33,9 @@ export function useAutosave<T>({
   debounceMs = 2000,
   maxBackoffMs = 30000,
 }: UseAutosaveInput<T>): UseAutosaveResult {
+  // The effect order below is load-bearing: the dirty flag must be set before the
+  // scheduling effect reads it within the same commit, and the "latest closure" refs
+  // must be assigned after commit rather than during render.
   const [status, setStatus] = React.useState<AutosaveStatus>('idle');
   const dirtyRef = React.useRef(false);
   const retryRef = React.useRef(0);

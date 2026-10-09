@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { QuoinBlock } from '../types';
+import { newBlockId } from './new-block-id';
 
 /** Handed back by `remove` and accepted by `undo` to restore that one block. */
 export type UndoToken = number;
@@ -20,7 +21,6 @@ type Action =
   | { type: 'reorder'; from: number; to: number }
   | { type: 'reset'; blocks: QuoinBlock[] };
 
-let blockSeq = 0;
 let removalSeq = 0;
 
 function reducer(state: State, action: Action): State {
@@ -90,8 +90,7 @@ export function useBlockList(initial: QuoinBlock[]): BlockList {
 
   const insertAt = React.useCallback(
     (index: number, type: string, data: Record<string, unknown> = {}): string => {
-      blockSeq += 1;
-      const id = `new-${blockSeq}`;
+      const id = newBlockId();
       dispatch({ type: 'insertAt', index, block: { id, type, data } });
       return id;
     },

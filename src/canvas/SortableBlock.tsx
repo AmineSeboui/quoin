@@ -53,7 +53,6 @@ export function SortableBlock({
         </Button>
       </div>
       <div
-        data-testid="editor-block"
         data-block-index={index}
         className={cn(
           'rounded-lg px-2 py-1 transition-colors',
