@@ -1,0 +1,137 @@
+.primary-button,
+.icon-button,
+.text-button,
+.swatch,
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.primary-button {
+  padding: 0.55rem 1rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-weight: 600;
+}
+
+.primary-button:hover {
+  opacity: 0.9;
+}
+
+.icon-button {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.icon-button:hover,
+.text-button:hover,
+.swatch:hover {
+  background: var(--muted);
+}
+
+.text-button {
+  margin-left: auto;
+  padding: 0.2rem 0.5rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.accent-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.swatch {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+}
+
+.swatch[aria-pressed='true'] {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.swatch-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+.editor-frame {
+  padding: 0.5rem 1rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 4px);
+  background: var(--background);
+  box-shadow: 0 1px 2px oklch(0 0 0 / 6%), 0 12px 32px -12px oklch(0 0 0 / 14%);
+}
+
+.editor-hints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.code-sample {
+  position: relative;
+  margin: 0.75rem 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--muted);
+}
+
+.code-label {
+  display: block;
+  padding: 0.5rem 4.5rem 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.code-sample pre {
+  margin: 0;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.copy {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--background);
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.copy:hover {
+  color: var(--foreground);
+}
