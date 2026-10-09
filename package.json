@@ -1,27 +1,55 @@
 {
   "name": "quoin-editor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A React block editor: typed blocks, drag to reorder, a markdown surface with a slash palette, and an open block type registry.",
   "license": "MIT",
   "author": "Amine Sboui",
-  "repository": { "type": "git", "url": "git+https://github.com/AmineSeboui/quoin.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AmineSeboui/quoin.git"
+  },
   "homepage": "https://amineseboui.github.io/quoin",
-  "bugs": { "url": "https://github.com/AmineSeboui/quoin/issues" },
-  "keywords": ["react", "editor", "block-editor", "markdown", "wysiwyg", "notion"],
+  "bugs": {
+    "url": "https://github.com/AmineSeboui/quoin/issues"
+  },
+  "keywords": [
+    "react",
+    "editor",
+    "block-editor",
+    "markdown",
+    "wysiwyg",
+    "notion"
+  ],
   "type": "module",
-  "sideEffects": ["*.css"],
-  "files": ["dist"],
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     },
     "./headless": {
-      "import": { "types": "./dist/headless.d.ts", "default": "./dist/headless.js" },
-      "require": { "types": "./dist/headless.d.cts", "default": "./dist/headless.cjs" }
+      "import": {
+        "types": "./dist/headless.d.ts",
+        "default": "./dist/headless.js"
+      },
+      "require": {
+        "types": "./dist/headless.d.cts",
+        "default": "./dist/headless.cjs"
+      }
     },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
