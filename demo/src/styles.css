@@ -3,10 +3,49 @@
   --font-display: ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   color-scheme: light;
+
+  /* This page's own palette. Quoin reads only its own --quoin- names, so these are ours to
+     name and the mapping below is what hands them over. */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --radius: 0.625rem;
 }
 
 :root.dark {
   color-scheme: dark;
+
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+}
+
+/* The canvas root carries .quoin, and so do the menus, palette, select and dialog Quoin renders
+   into the body, so one rule themes all of them. The right-hand side already flips with .dark,
+   and the accent picker writes --primary on the document element, which reaches here too. */
+.quoin {
+  --quoin-background: var(--background);
+  --quoin-foreground: var(--foreground);
+  --quoin-muted: var(--muted);
+  --quoin-muted-foreground: var(--muted-foreground);
+  --quoin-border: var(--border);
+  --quoin-input: var(--input);
+  --quoin-ring: var(--ring);
+  --quoin-primary: var(--primary);
+  --quoin-primary-foreground: var(--primary-foreground);
+  --quoin-radius: var(--radius);
 }
 
 html {

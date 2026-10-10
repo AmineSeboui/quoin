@@ -79,7 +79,7 @@ export function App() {
         <Section
           id="theming"
           title="Theming"
-          lede="The stylesheet is driven by CSS custom properties. Override any of them from your own CSS, and dark mode follows a .dark class on an ancestor."
+          lede="Every colour and radius Quoin draws with comes from a --quoin- custom property, so it never reads a token of yours by accident. Point them at your own from your own CSS, and dark mode follows a .dark class on an ancestor."
         >
           <h3>Try it</h3>
           <p className="note">Both controls change this whole page, editor included.</p>
@@ -89,7 +89,7 @@ export function App() {
             </button>
             <AccentPicker />
           </div>
-          <CodeSample label="Override a token" code={THEME_CSS} />
+          <CodeSample label="Map your tokens onto Quoin" code={THEME_CSS} />
           <CodeSample label="Dark mode" code={DARK_MODE} />
           <p className="note">
             Quoin does not reset your page. Its reset is scoped to a <code>.quoin</code> element, so your headings, lists and buttons keep their own styles.

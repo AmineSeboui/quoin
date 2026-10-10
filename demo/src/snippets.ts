@@ -58,11 +58,13 @@ export function Editor({ blocks, onChange }: { blocks: QuoinBlock[]; onChange: (
   return <BlockCanvas blocks={blocks} onChange={onChange} blockTypes={blockTypes} />;
 }`;
 
-export const THEME_CSS = `:root {
-  --primary: oklch(0.55 0.2 260);
-  --radius: 0.5rem;
+export const THEME_CSS = `/* Hand Quoin the tokens this page already has */
+.quoin {
+  --quoin-primary: var(--primary);
+  --quoin-border: var(--border);
+  --quoin-radius: var(--radius);
 }`;
 
 export const DARK_MODE = `<html class="dark">
-  <!-- Quoin redefines its variables under .dark -->
+  <!-- Quoin redefines its own --quoin- tokens under .dark -->
 </html>`;
