@@ -62,3 +62,57 @@ if (offenders.length) {
   process.exit(1);
 }
 console.log(`${file}: every rule that sets a visual property is scoped to a class.`);
+
+function* topLevelLayers(source) {
+  let i = 0;
+  let depth = 0;
+  while (i < source.length) {
+    const ch = source[i];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') depth -= 1;
+    else if (depth === 0 && source.startsWith('@layer', i)) {
+      const open = source.indexOf('{', i);
+      const end = source.indexOf(';', i);
+      if (open !== -1 && (end === -1 || open < end)) {
+        let inner = 0;
+        let close = open;
+        for (; close < source.length; close += 1) {
+          if (source[close] === '{') inner += 1;
+          else if (source[close] === '}' && (inner -= 1) === 0) break;
+        }
+        yield { name: source.slice(i + '@layer'.length, open).trim(), body: source.slice(open + 1, close) };
+        i = close;
+      }
+    }
+    i += 1;
+  }
+}
+
+function paintsSomething(body) {
+  for (const { body: declarations } of rules(body)) {
+    if (declarations.split(';').some((d) => d.trim() && !d.trim().startsWith('--'))) return true;
+  }
+  return false;
+}
+
+// A host decides layer order by first appearance, so a package rule in a layer the host also
+// uses lands wherever that host's layer sits. Everything this package paints belongs under one
+// top-level `quoin` layer the host can place. Tailwind's own `properties` layer stays outside
+// it and is tolerated: it only seeds --tw-* custom properties and paints nothing.
+const layered = [...topLevelLayers(css)];
+const quoin = layered.filter(({ name }) => name === 'quoin' || name.startsWith('quoin.'));
+const strays = layered.filter(({ name }) => !(name === 'quoin' || name.startsWith('quoin.')));
+const painting = strays.filter(({ body }) => paintsSomething(body));
+
+if (quoin.length === 0) {
+  console.error(`${file} emits nothing inside a top-level "quoin" layer, so a host cannot order it.`);
+  process.exit(1);
+}
+if (painting.length) {
+  console.error(`${file} paints from outside the quoin layer, where a host's own rules cannot outrank it:`);
+  for (const { name } of painting) console.error(`  @layer ${name}`);
+  process.exit(1);
+}
+console.log(
+  `${file}: every painted rule is under the single top-level "quoin" layer (${quoin.map((l) => l.name).join(', ')}).`,
+);

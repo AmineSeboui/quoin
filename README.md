@@ -37,6 +37,8 @@ export function Editor() {
 
 A document is an array of `QuoinBlock`, each `{ id, type, data }`. Five block types ship by default: `MARKDOWN`, `CALLOUT`, `CODE`, `IMAGE` and `FILE`. The main entry point is marked `'use client'`, so render `BlockCanvas` from a client component.
 
+If your application has Tailwind of its own, import the stylesheet from your CSS into a layer you have named instead of from JavaScript, so you decide which of the two wins. See [Cascade layers and import order](#cascade-layers-and-import-order).
+
 ## The controlled-component contract
 
 `BlockCanvas` behaves like a controlled `<input value onChange>`. Update `blocks` synchronously from `onChange`.
@@ -488,7 +490,7 @@ Quoin does not reset your page. The stylesheet contains no `html`, `body`, headi
 All of Quoin's own rules are in cascade layers, so an **unlayered** global reset of yours beats them. A host that ships one (Bootstrap's reboot, or a hand-rolled `* { margin: 0; padding: 0; border: 0 }`) will see Quoin's padding and borders vanish. Tailwind 4's preflight is itself layered and is fine. Either declare your reset in a layer that comes before Quoin's, or scope it away from `.quoin`:
 
 ```css
-@layer reset, theme, base, components, utilities;
+@layer reset, theme, base, components, quoin, utilities;
 
 @layer reset {
   * { margin: 0; padding: 0; border: 0; }
@@ -500,6 +502,23 @@ All of Quoin's own rules are in cascade layers, so an **unlayered** global reset
 ```
 
 The layer statement has to come before Quoin's stylesheet is parsed, so put it first in your own CSS or in an inline `<style>` in the document head.
+
+### Cascade layers and import order
+
+Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer.
+
+That changed in 0.2.0, and it had to. Until then the package imported Tailwind's utilities into the bare `utilities` layer, so in a Tailwind host they appended into the host's own `utilities` layer, after the host's rules, and beat them on source order. One bare `.hidden { display: none }` from the package was enough to keep every element carrying `hidden md:flex` hidden at every width, across the whole application.
+
+The package cannot settle this on its own, because a browser orders layers by first appearance. A host whose own Tailwind is parsed first registers `theme`, `base`, `components` and `utilities` before `quoin` appears, so `quoin` sorts last and still wins. Name the order yourself, as the first thing in your stylesheet, and import Quoin into it:
+
+```css
+@layer theme, base, components, quoin, utilities;
+@import "quoin-editor/styles.css" layer(quoin);
+```
+
+With `quoin` named before `utilities`, your own utilities outrank Quoin's, including the responsive ones, while Quoin still outranks your `components`. Order the statement differently if you want Quoin to win: what matters is that you decide.
+
+Importing the stylesheet from a root layout, or with a plain `import 'quoin-editor/styles.css'` in JavaScript, gives you no say in where the layer lands. The bundler decides, and in a Tailwind host that usually means Quoin's layer sorts last. That is fine for an application with no Tailwind of its own, and it is what the samples in this README do for brevity. A Tailwind host should use the two lines above and drop the JavaScript import.
 
 ## Headless
 

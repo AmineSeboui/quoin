@@ -1,6 +1,12 @@
-@layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+/* Everything this package paints goes under one top-level layer the host can place among its
+   own. Imported into the bare `utilities` layer instead, the package's utilities append after
+   the host's and win on source order, so a bare `.hidden` beats every `hidden md:flex` on the
+   page. The nested names keep the internal order. tw-animate-css is imported unlayered because
+   its `@utility` definitions cannot be nested in a layer; what it generates still lands in
+   quoin.utilities, because that is where the utilities import sits. */
+@layer quoin.theme, quoin.base, quoin.components, quoin.utilities;
+@import "tailwindcss/theme.css" layer(quoin.theme);
+@import "tailwindcss/utilities.css" layer(quoin.utilities);
 @import "tw-animate-css";
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
@@ -10,7 +16,7 @@
 
 @source "./";
 
-@layer base {
+@layer quoin.base {
   /* Tailwind's preflight would reset the host's whole page, and browser defaults sit below every
      author layer, so a host could not restore what it never wrote. This reset is scoped to .quoin.
      Portalled content (menus, the palette, dialogs) renders outside that root, so those elements
