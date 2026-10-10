@@ -116,3 +116,25 @@ if (painting.length) {
 console.log(
   `${file}: every painted rule is under the single top-level "quoin" layer (${quoin.map((l) => l.name).join(', ')}).`,
 );
+
+// Every token the package declares and reads carries the --quoin- prefix. An unprefixed name is
+// one a host may already use for something else, and reading it hands the package a value nobody
+// meant it to have: the Vite template's --accent is a bright purple, which left the selected
+// palette row at about 3.2:1 against the package's own near-black foreground.
+const TOKENS = [
+  'background', 'foreground', 'muted', 'muted-foreground', 'secondary', 'secondary-foreground',
+  'popover', 'popover-foreground', 'border', 'input', 'ring', 'primary', 'primary-foreground',
+  'accent', 'accent-foreground', 'destructive', 'radius',
+];
+
+const unprefixed = TOKENS.filter((token) => {
+  const name = token.replace(/-/g, '\\-');
+  return new RegExp(`var\\(\\s*--${name}\\s*[,)]|--${name}\\s*:`).test(css);
+});
+
+if (unprefixed.length) {
+  console.error(`${file} declares or reads host-owned token names instead of prefixed ones:`);
+  for (const token of unprefixed) console.error(`  --${token}, which should be --quoin-${token}`);
+  process.exit(1);
+}
+console.log(`${file}: every theme token it declares and reads carries the --quoin- prefix.`);

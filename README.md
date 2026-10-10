@@ -422,68 +422,106 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 
 ## Theming
 
-`quoin-editor/styles.css` is compiled Tailwind CSS v4 and defines these custom properties:
+`quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix, and it reads nothing else. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
 
 ```css
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --radius: 0.625rem;
+  --quoin-background: oklch(1 0 0);
+  --quoin-foreground: oklch(0.145 0 0);
+  --quoin-muted: oklch(0.97 0 0);
+  --quoin-muted-foreground: oklch(0.556 0 0);
+  --quoin-secondary: oklch(0.97 0 0);
+  --quoin-secondary-foreground: oklch(0.205 0 0);
+  --quoin-popover: oklch(1 0 0);
+  --quoin-popover-foreground: oklch(0.145 0 0);
+  --quoin-border: oklch(0.922 0 0);
+  --quoin-input: oklch(0.922 0 0);
+  --quoin-ring: oklch(0.708 0 0);
+  --quoin-primary: oklch(0.205 0 0);
+  --quoin-primary-foreground: oklch(0.985 0 0);
+  --quoin-accent: oklch(0.97 0 0);
+  --quoin-accent-foreground: oklch(0.205 0 0);
+  --quoin-destructive: oklch(0.577 0.245 27.325);
+  --quoin-radius: 0.625rem;
+}
+
+.dark {
+  --quoin-background: oklch(0.145 0 0);
+  --quoin-foreground: oklch(0.985 0 0);
+  --quoin-muted: oklch(0.269 0 0);
+  --quoin-muted-foreground: oklch(0.708 0 0);
+  --quoin-secondary: oklch(0.269 0 0);
+  --quoin-secondary-foreground: oklch(0.985 0 0);
+  --quoin-popover: oklch(0.205 0 0);
+  --quoin-popover-foreground: oklch(0.985 0 0);
+  --quoin-border: oklch(1 0 0 / 10%);
+  --quoin-input: oklch(1 0 0 / 15%);
+  --quoin-ring: oklch(0.556 0 0);
+  --quoin-primary: oklch(0.922 0 0);
+  --quoin-primary-foreground: oklch(0.205 0 0);
+  --quoin-accent: oklch(0.269 0 0);
+  --quoin-accent-foreground: oklch(0.985 0 0);
+  --quoin-destructive: oklch(0.704 0.191 22.216);
+  --quoin-radius: 0.625rem;
 }
 ```
 
-Override any of them from your own CSS. They are declared inside `@layer base`, so a plain `:root` rule of yours wins without `!important`:
+Out of the box that is a neutral grey editor that works in both modes with nothing configured.
 
-```css
-:root {
-  --primary: oklch(0.55 0.2 260);
-  --radius: 0.5rem;
-}
-```
+### The prefix arrived in 0.2.0
 
-A project that already defines shadcn-style tokens with these names inherits its theme for free, with nothing to configure.
+Until 0.2.0 these names were unprefixed: `--background`, `--accent`, `--border` and the rest. That was sold as free theme inheritance, and for a shadcn-style host it was. It also meant Quoin read whatever a host happened to keep under those names.
 
-### When a token name collides
+The stock Vite React + TypeScript template is the case that forced the change. It declares `--accent` as a bright purple and `--border` on `:root` with meanings of its own, so a fresh `npm create vite` project that installed Quoin drew the selected slash-palette row on that purple while keeping Quoin's own near-black `--accent-foreground`. The pair measures around 3.2:1, under the 4.5:1 that WCAG AA asks for, with nothing done wrong by the consumer.
 
-The same unprefixed names that make that inheritance free also let a collision happen by accident. A project that already declares one of them for something else hands Quoin a value nobody meant it to read, and Quoin cannot tell that apart from a theme deliberately shared with it.
+A fallback form such as `var(--quoin-accent, var(--accent))` does not fix that, because the colliding value is exactly what gets read when only the unprefixed name is set. So the prefix is unconditional, and the inheritance is no longer free. If your theme stopped reaching Quoin when you upgraded, this is why, and the next section is how to hand it over again.
 
-The stock Vite React + TypeScript template is the case to know about. It declares `--accent` as a bright purple and `--border` on `:root` with meanings of its own, so a fresh `npm create vite` project that installs Quoin draws the selected slash-palette row on that purple while keeping Quoin's own near-black `--accent-foreground`. The pair measures around 3.2:1, under the 4.5:1 that WCAG AA asks for, with nothing done wrong by the consumer.
+### Mapping your own tokens
 
-Declare the tokens you did not mean to share on `.quoin` instead. The canvas root carries that class, and so do the menus, palette, select and dialog Quoin renders into `document.body`, so one rule covers all of them. It sits closer to the elements reading the token than your `:root` rule does, so it wins without `!important` and leaves your own `--accent` untouched.
+Point the prefixed names at your own in one block on `.quoin`. The canvas root carries that class, and so do the menus, palette, select and dialog Quoin renders into `document.body`, so one rule covers all of them.
 
 ```css
 .quoin {
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --border: oklch(0.922 0 0);
-}
-
-.dark .quoin {
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
+  --quoin-background: var(--background);
+  --quoin-foreground: var(--foreground);
+  --quoin-muted: var(--muted);
+  --quoin-muted-foreground: var(--muted-foreground);
+  --quoin-secondary: var(--secondary);
+  --quoin-secondary-foreground: var(--secondary-foreground);
+  --quoin-popover: var(--popover);
+  --quoin-popover-foreground: var(--popover-foreground);
+  --quoin-border: var(--border);
+  --quoin-input: var(--input);
+  --quoin-ring: var(--ring);
+  --quoin-primary: var(--primary);
+  --quoin-primary-foreground: var(--primary-foreground);
+  --quoin-accent: var(--accent);
+  --quoin-accent-foreground: var(--accent-foreground);
+  --quoin-destructive: var(--destructive);
+  --quoin-radius: var(--radius);
 }
 ```
 
-Both rules are needed once you take a token over: pinning `--accent` on `.quoin` alone would also beat Quoin's own `.dark` value and freeze that token in its light form.
+That one block covers both modes: the tokens on the right already flip with your own dark class, and each mapping beats Quoin's `:root` and `.dark` defaults alike. Write it unlayered, or in a layer that sorts after `quoin`, so it outranks those defaults.
 
-Quoin keeps the unprefixed names rather than reading `--quoin-accent`. A prefix would stop the accident, but it would also cancel the free inheritance for every project that is already relying on it, and the package cannot tell a deliberate `--accent` from an accidental one.
+To change one token rather than adopt a whole theme, declare it on `:root`, and pair it with a `.dark` rule if you theme dark at all. Pinning a token on `:root` alone also beats Quoin's `.dark` value for it, which would freeze that one token in its light form.
 
-Dark mode keys on a `.dark` class on an ancestor (for example `<html class="dark">`), not on `prefers-color-scheme`. Quoin redefines the same variables under `.dark`, and its `dark:` variants follow the same class, so the two cannot disagree when a visitor's OS theme differs from your app's theme.
+```css
+:root {
+  --quoin-primary: oklch(0.55 0.2 260);
+  --quoin-radius: 0.5rem;
+}
+
+.dark {
+  --quoin-primary: oklch(0.72 0.17 260);
+}
+```
+
+### Dark mode
+
+Dark mode keys on a `.dark` class on an ancestor (for example `<html class="dark">`), not on `prefers-color-scheme`. Quoin redefines its own tokens under `.dark`, and its `dark:` variants follow the same class, so the two cannot disagree when a visitor's OS theme differs from your app's theme.
+
+### Resets
 
 Quoin does not reset your page. The stylesheet contains no `html`, `body`, heading, list or other element rules, and no universal `*` reset. Its own reset (box sizing, zero margins, unstyled lists and form controls) applies only inside a `.quoin` element: the canvas root, and the menus, palette, select and dialog that Quoin renders into `document.body`, which carry the class themselves. Your headings, paragraphs, lists and buttons keep whatever styles you gave them, or the browser's.
 
@@ -505,7 +543,7 @@ The layer statement has to come before Quoin's stylesheet is parsed, so put it f
 
 ### Cascade layers and import order
 
-Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer.
+Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, with nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer.
 
 That changed in 0.2.0, and it had to. Until then the package imported Tailwind's utilities into the bare `utilities` layer, so in a Tailwind host they appended into the host's own `utilities` layer, after the host's rules, and beat them on source order. One bare `.hidden { display: none }` from the package was enough to keep every element carrying `hidden md:flex` hidden at every width, across the whole application.
 
