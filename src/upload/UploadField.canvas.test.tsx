@@ -53,6 +53,19 @@ describe('UploadField inside a custom block', () => {
     );
   });
 
+  it('announces the upload in flight to assistive technology', async () => {
+    const user = userEvent.setup();
+    let finish: (result: { storageKey: string; filename: string; size: number }) => void = () => {};
+    const upload = vi.fn().mockReturnValue(new Promise((resolve) => { finish = resolve; }));
+    renderCanvas(upload);
+    await user.upload(screen.getByLabelText('Upload slides'), new File(['x'], 'deck.pdf'));
+    // dnd-kit's own live region is also role="status", so the announcement is found by its text.
+    expect(screen.getByText('Uploading...')).toHaveAttribute('role', 'status');
+    expect(screen.getByLabelText('Upload slides')).toBeDisabled();
+    finish({ storageKey: 'deck/1', filename: 'deck.pdf', size: 2 });
+    await waitFor(() => expect(screen.queryByText('Uploading...')).toBeNull());
+  });
+
   it('says so when the canvas was given no upload function', () => {
     renderCanvas(undefined);
     expect(screen.getByLabelText('Upload slides')).toBeDisabled();
