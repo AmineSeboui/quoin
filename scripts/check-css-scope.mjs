@@ -57,11 +57,13 @@ for (const { selector, body } of rules(css)) {
 }
 
 if (offenders.length) {
-  console.error(`${file} styles elements that are not scoped to a class, which would restyle the host page:`);
+  console.error(`${file} paints elements by type, which would restyle markup the host wrote:`);
   for (const o of offenders) console.error(`  ${o.selector} { ${o.declarations.join('; ')} }`);
   process.exit(1);
 }
-console.log(`${file}: every rule that sets a visual property is scoped to a class.`);
+// Class names are not namespaced and cannot be: a utility such as .hidden matches the host's own
+// markup by design. Keeping that from deciding the cascade is the quoin layer's job, below.
+console.log(`${file}: no rule paints by element type; a class, id or attribute selects every painted rule.`);
 
 function* topLevelLayers(source) {
   let i = 0;
@@ -117,24 +119,24 @@ console.log(
   `${file}: every painted rule is under the single top-level "quoin" layer (${quoin.map((l) => l.name).join(', ')}).`,
 );
 
-// Every token the package declares and reads carries the --quoin- prefix. An unprefixed name is
-// one a host may already use for something else, and reading it hands the package a value nobody
-// meant it to have: the Vite template's --accent is a bright purple, which left the selected
-// palette row at about 3.2:1 against the package's own near-black foreground.
-const TOKENS = [
-  'background', 'foreground', 'muted', 'muted-foreground', 'secondary', 'secondary-foreground',
-  'popover', 'popover-foreground', 'border', 'input', 'ring', 'primary', 'primary-foreground',
-  'accent', 'accent-foreground', 'destructive', 'radius',
-];
+// Every custom property the package declares or reads is one it owns. A bare name is one a host
+// may already keep for something else, and in either direction the two collide: reading the host's
+// --accent drew the selected palette row on the Vite template's bright purple, around 3.2:1, and
+// declaring --spacing on :root resized every `p-4` on the host's page, not only the editor's.
+// --tw-* belong to Tailwind's own internals and --radix-* are written at runtime by Radix, so both
+// are the host's problem with or without this package.
+const OWNED = /^(quoin-|tw-|radix-)/;
 
-const unprefixed = TOKENS.filter((token) => {
-  const name = token.replace(/-/g, '\\-');
-  return new RegExp(`var\\(\\s*--${name}\\s*[,)]|--${name}\\s*:`).test(css);
-});
+const declared = new Set([...css.matchAll(/--([a-zA-Z0-9_-]+)\s*:/g)].map((m) => m[1]));
+const read = new Set([...css.matchAll(/var\(\s*--([a-zA-Z0-9_-]+)/g)].map((m) => m[1]));
+const foreign = [...new Set([...declared, ...read])].filter((name) => !OWNED.test(name)).sort();
 
-if (unprefixed.length) {
-  console.error(`${file} declares or reads host-owned token names instead of prefixed ones:`);
-  for (const token of unprefixed) console.error(`  --${token}, which should be --quoin-${token}`);
+if (foreign.length) {
+  console.error(`${file} declares or reads custom properties the package does not own:`);
+  for (const name of foreign) {
+    const how = [declared.has(name) && 'declares', read.has(name) && 'reads'].filter(Boolean).join(' and ');
+    console.error(`  --${name} (${how})`);
+  }
   process.exit(1);
 }
-console.log(`${file}: every theme token it declares and reads carries the --quoin- prefix.`);
+console.log(`${file}: every custom property it declares and reads is its own (--quoin-, --tw- or --radix-).`);

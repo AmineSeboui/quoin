@@ -56,7 +56,7 @@ export function SortableBlock({
         data-block-index={index}
         className={cn(
           'rounded-lg px-2 py-1 transition-colors',
-          isDragging ? 'bg-card shadow-[var(--shadow-md)]' : 'group-hover/block:bg-muted/40',
+          isDragging ? 'bg-popover shadow-md' : 'group-hover/block:bg-muted/40',
         )}
       >
         {children}

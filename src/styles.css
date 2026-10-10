@@ -1,11 +1,16 @@
 /* Everything this package paints goes under one top-level layer the host can place among its
    own. Imported into the bare `utilities` layer instead, the package's utilities append after
-   the host's and win on source order, so a bare `.hidden` beats every `hidden md:flex` on the
+   the host's and win on source order, so a bare `.hidden` beats every `hidden md:block` on the
    page. The nested names keep the internal order. tw-animate-css is imported unlayered because
    its `@utility` definitions cannot be nested in a layer; what it generates still lands in
-   quoin.utilities, because that is where the utilities import sits. */
+   quoin.utilities, because that is where the utilities import sits.
+
+   Tailwind's theme is imported by reference, so its tokens are resolved into these utilities at
+   build time rather than declared on the host's :root. Declared, `--spacing`, `--text-base` and
+   `--container-md` would take over the host's own values and resize its whole page, editor or
+   not. The only custom properties this file ships are the --quoin- ones below. */
 @layer quoin.theme, quoin.base, quoin.components, quoin.utilities;
-@import "tailwindcss/theme.css" layer(quoin.theme);
+@import "tailwindcss/theme.css" layer(quoin.theme) theme(inline reference);
 @import "tailwindcss/utilities.css" layer(quoin.utilities);
 @import "tw-animate-css";
 

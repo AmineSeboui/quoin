@@ -422,7 +422,7 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 
 ## Theming
 
-`quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix, and it reads nothing else. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
+`quoin-editor/styles.css` is compiled Tailwind CSS v4. Every colour and every radius it draws with comes from a custom property under a `--quoin-` prefix. It ships a default for all of them, on `:root` for light and on `.dark` for dark:
 
 ```css
 :root {
@@ -467,6 +467,8 @@ export function Reader({ blocks }: { blocks: QuoinBlock[] }) {
 ```
 
 Out of the box that is a neutral grey editor that works in both modes with nothing configured.
+
+Those are the only custom properties the stylesheet declares. Apart from them it reads `--tw-*`, which belong to the Tailwind runtime it is compiled with, and the `--radix-*` values Radix writes on its own portalled elements while they are open. Tailwind's theme tokens are imported by reference, so the package resolves `--spacing`, `--text-base`, `--container-md` and the rest at build time and declares none of them on your page.
 
 ### The prefix arrived in 0.2.0
 
@@ -545,7 +547,7 @@ The layer statement has to come before Quoin's stylesheet is parsed, so put it f
 
 Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, with nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer.
 
-That changed in 0.2.0, and it had to. Until then the package imported Tailwind's utilities into the bare `utilities` layer, so in a Tailwind host they appended into the host's own `utilities` layer, after the host's rules, and beat them on source order. One bare `.hidden { display: none }` from the package was enough to keep every element carrying `hidden md:flex` hidden at every width, across the whole application.
+That changed in 0.2.0, and it had to. Until then the package imported Tailwind's utilities into the bare `utilities` layer, so in a Tailwind host they appended into the host's own `utilities` layer, after the host's rules, and beat them on source order. One bare `.hidden { display: none }` from the package was enough to keep every element carrying `hidden md:block` hidden at every width, across the whole application.
 
 The package cannot settle this on its own, because a browser orders layers by first appearance. A host whose own Tailwind is parsed first registers `theme`, `base`, `components` and `utilities` before `quoin` appears, so `quoin` sorts last and still wins. Name the order yourself, as the first thing in your stylesheet, and import Quoin into it:
 
@@ -554,7 +556,18 @@ The package cannot settle this on its own, because a browser orders layers by fi
 @import "quoin-editor/styles.css" layer(quoin);
 ```
 
-With `quoin` named before `utilities`, your own utilities outrank Quoin's, including the responsive ones, while Quoin still outranks your `components`. Order the statement differently if you want Quoin to win: what matters is that you decide.
+With `quoin` named before `utilities`, your own utilities outrank Quoin's, including the responsive ones, while Quoin still outranks your `components`.
+
+Naming it first instead puts every layer of yours above the package:
+
+```css
+@layer quoin, theme, base, components, utilities;
+@import "quoin-editor/styles.css" layer(quoin);
+```
+
+Layer position settles more than which utility wins. It also settles who owns a custom property both of you declare on `:root`, which is why it is worth deciding rather than inheriting. Quoin no longer declares any name Tailwind owns, because it imports Tailwind's theme by reference, but a package that does, including Quoin before 0.2.0, resizes every `p-4` on the page from whichever layer sorts last.
+
+**Upgrading alone does not fix this.** Import 0.2.0 the way 0.1.1 was imported, with no layer statement of your own, and a host's `hidden md:block` still computes to `display: none`, exactly as before. The layer the package ships is what makes the fix available to you; the two lines above are what apply it.
 
 Importing the stylesheet from a root layout, or with a plain `import 'quoin-editor/styles.css'` in JavaScript, gives you no say in where the layer lands. The bundler decides, and in a Tailwind host that usually means Quoin's layer sorts last. That is fine for an application with no Tailwind of its own, and it is what the samples in this README do for brevity. A Tailwind host should use the two lines above and drop the JavaScript import.
 
