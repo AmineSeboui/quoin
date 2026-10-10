@@ -26,6 +26,7 @@ import { DocumentStarter } from './DocumentStarter';
 import { reorderIndices } from './reorder-indices';
 import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
+import { remember } from './unacknowledged';
 
 /** Props for `BlockCanvas`; `blocks` and `onChange` are the whole document contract. */
 export type BlockCanvasProps = {
@@ -67,18 +68,6 @@ export type BlockCanvasProps = {
 };
 
 type Selection = { start: number; end: number };
-
-/** A host may coalesce or drop echoes, so the outstanding set is capped instead of trusted to drain. */
-const UNACKNOWLEDGED_LIMIT = 64;
-
-function remember(outstanding: Set<QuoinBlock[]>, blocks: QuoinBlock[]) {
-  outstanding.add(blocks);
-  while (outstanding.size > UNACKNOWLEDGED_LIMIT) {
-    const oldest = outstanding.values().next();
-    if (oldest.done) return;
-    outstanding.delete(oldest.value);
-  }
-}
 
 function Canvas({
   blocks,
