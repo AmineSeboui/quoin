@@ -547,7 +547,7 @@ The layer statement has to come before Quoin's stylesheet is parsed, so put it f
 
 ### Cascade layers and import order
 
-Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, with nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer.
+Everything the stylesheet paints is inside one top-level cascade layer called `quoin`, with nested layers for its own theme, base and utilities inside it. Nothing it ships lands in a bare `theme`, `base`, `components` or `utilities` layer. It carries only the utilities Quoin's own components use, so the set of class names it can collide with at all is small and fixed.
 
 That changed in 0.2.0, and it had to. Until then the package imported Tailwind's utilities into the bare `utilities` layer, so in a Tailwind host they appended into the host's own `utilities` layer, after the host's rules, and beat them on source order. One bare `.hidden { display: none }` from the package was enough to keep every element carrying `hidden md:block` hidden at every width, across the whole application.
 

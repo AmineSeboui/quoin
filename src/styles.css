@@ -11,7 +11,7 @@
    not. The only custom properties this file ships are the --quoin- ones below. */
 @layer quoin.theme, quoin.base, quoin.components, quoin.utilities;
 @import "tailwindcss/theme.css" layer(quoin.theme) theme(inline reference);
-@import "tailwindcss/utilities.css" layer(quoin.utilities);
+@import "tailwindcss/utilities.css" layer(quoin.utilities) source(none);
 @import "tw-animate-css";
 
 /* Tailwind's default dark: variant keys on prefers-color-scheme, while the variables below
@@ -19,7 +19,13 @@
    differs from their app theme. */
 @custom-variant dark (&:is(.dark *));
 
-@source "./";
+/* Narrowed from the whole directory, and automatic detection turned off above, so the build
+   scans this package's components and nothing else. Left wider, Tailwind reads the README as
+   content and emits a utility for every class name the prose quotes, which is how .md\:block
+   shipped: the collision the README documents was then rescued by the package itself. Tests are
+   excluded for the same reason, a class named in an assertion is not a class we ship. */
+@source "./**/*.{ts,tsx}";
+@source not "./**/*.test.{ts,tsx}";
 
 @layer quoin.base {
   /* Tailwind's preflight would reset the host's whole page, and browser defaults sit below every
