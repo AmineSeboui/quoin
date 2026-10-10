@@ -103,6 +103,39 @@ describe('BlockCanvas onDelete', () => {
     expect(texts[1]).toContain('second');
   });
 
+  it('ignores a restore applied synchronously inside onDelete, which is why a later tick is documented', async () => {
+    const user = userEvent.setup();
+    function SynchronousHost() {
+      const [current, setCurrent] = React.useState<QuoinBlock[]>(blocks);
+      return (
+        <BlockCanvas
+          blocks={current}
+          onChange={setCurrent}
+          onDelete={(block, index) =>
+            setCurrent((latest) => {
+              const next = [...latest];
+              next.splice(index, 0, block);
+              return next;
+            })
+          }
+        />
+      );
+    }
+    render(<SynchronousHost />);
+    await deleteBlock(user, 1);
+    // The echo and the restore land in one commit, so what the canvas is handed is structurally
+    // equal to the document it was last given and is read as an unrelated re-render, not a load.
+    expect(screen.queryByText('first')).not.toBeInTheDocument();
+  });
+
+  it('accepts a restore applied on a later interaction', async () => {
+    const user = userEvent.setup();
+    render(<Host />);
+    await deleteBlock(user, 2);
+    await user.click(screen.getByRole('button', { name: 'restore' }));
+    expect(screen.getByText('second')).toBeInTheDocument();
+  });
+
   it('brings a freshly inserted block back at rest when the host restores it', async () => {
     const user = userEvent.setup();
     render(<Host initial={[]} />);

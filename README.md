@@ -132,6 +132,8 @@ The structural comparison is shallow over each block's `data`. A host whose bloc
 
 It runs just after the `onChange` that reports the document without that block, so by the time your handler runs the new array has already been reported. Restoring is an ordinary document load: splice the block back at its index and supply the result as `blocks`.
 
+Do that on a later tick or a later interaction, such as the click of an Undo toast, which is what the sample below does. A restore applied synchronously inside `onDelete` is batched together with the echo of the deletion, so what reaches the canvas is structurally equal to the document it last had from you, which it reads as an unrelated re-render and ignores. Nothing throws; the deletion simply stands.
+
 ```tsx
 import { useState } from 'react';
 import { BlockCanvas, type QuoinBlock } from 'quoin-editor';

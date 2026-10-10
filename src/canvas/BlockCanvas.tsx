@@ -23,6 +23,7 @@ import { BlockActionsMenu } from './BlockActionsMenu';
 import { BlockCard } from './BlockCard';
 import { BlockInserter } from './BlockInserter';
 import { DocumentStarter } from './DocumentStarter';
+import { ReadOnlyCanvas } from './ReadOnlyCanvas';
 import { reorderIndices } from './reorder-indices';
 import { sameBlocks } from './same-blocks';
 import { SortableBlock } from './SortableBlock';
@@ -51,6 +52,10 @@ export type BlockCanvasProps = {
    * It runs just after the `onChange` that reports the document without it, so a host acting on the
    * deletion is already looking at the new array. Restore the block by supplying a `blocks` array
    * with it spliced back at that index, the same way any other document arrives.
+   *
+   * Restore it on a later tick or a later interaction, such as the click of an Undo toast. A
+   * restore applied synchronously inside this callback batches with the echo of the deletion, so
+   * what arrives is structurally equal to the document last supplied and is ignored.
    */
   onDelete?: (block: QuoinBlock, index: number) => void;
   /** Defaults to the five core block types. Pass `[...coreBlocks, yours]` to extend them. */
@@ -135,6 +140,11 @@ function Canvas({
     }
     // A host that builds a fresh array on every render, without echoing edits, would
     // otherwise wipe them on any unrelated re-render. An undo replays a different array.
+    // The cost of the `previous` half is that a restore applied synchronously inside
+    // `onDelete` batches with the echo, arrives structurally equal to the last document
+    // supplied, and is read as one of those re-renders. That is why `onDelete` documents
+    // restoring on a later tick. Dropping this comparison to accept the synchronous case
+    // would hand back the edit-wiping bug, which is the worse of the two.
     if (sameBlocks(blocks, previous) || sameBlocks(blocks, list.blocks)) return;
     unacknowledged.current.clear();
     lastEmitted.current = blocks;
@@ -188,21 +198,7 @@ function Canvas({
     'aria-label': ariaLabel,
   };
 
-  if (readOnly) {
-    return (
-      <div {...rootProps}>
-        <ul className="flex flex-col">
-          {list.blocks.map((b, i) => (
-            <li key={b.id}>
-              <div data-block-index={i} className="rounded-lg px-2 py-1">
-                <BlockCard block={b} index={i} editingByDefault={false} readOnly onUpdate={update} />
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
+  if (readOnly) return <ReadOnlyCanvas blocks={list.blocks} onUpdate={update} root={rootProps} />;
 
   return (
     <div {...rootProps}>
