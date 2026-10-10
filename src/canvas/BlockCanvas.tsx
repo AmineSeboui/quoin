@@ -45,6 +45,13 @@ export type BlockCanvasProps = {
    */
   blocks: QuoinBlock[];
   onChange: (blocks: QuoinBlock[]) => void;
+  /**
+   * Called when a block is removed through its actions menu, with the block and the index it held.
+   * It runs just after the `onChange` that reports the document without it, so a host acting on the
+   * deletion is already looking at the new array. Restore the block by supplying a `blocks` array
+   * with it spliced back at that index, the same way any other document arrives.
+   */
+  onDelete?: (block: QuoinBlock, index: number) => void;
   /** Defaults to the five core block types. Pass `[...coreBlocks, yours]` to extend them. */
   blockTypes?: AnyBlockDefinition[];
   upload?: UploadFn;
@@ -76,12 +83,16 @@ function remember(outstanding: Set<QuoinBlock[]>, blocks: QuoinBlock[]) {
 function Canvas({
   blocks,
   onChange,
+  onDelete,
   blockTypes,
   readOnly,
   className,
   id,
   'aria-label': ariaLabel,
-}: Pick<BlockCanvasProps, 'blocks' | 'onChange' | 'readOnly' | 'className' | 'id' | 'aria-label'> & {
+}: Pick<
+  BlockCanvasProps,
+  'blocks' | 'onChange' | 'onDelete' | 'readOnly' | 'className' | 'id' | 'aria-label'
+> & {
   blockTypes: AnyBlockDefinition[];
 }) {
   const list = useBlockList(blocks);
@@ -95,6 +106,7 @@ function Canvas({
   const [seedSelection, setSeedSelection] = React.useState<Selection | null>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
   const pendingDeleteIndexRef = React.useRef<number | null>(null);
+  const removedRef = React.useRef<{ block: QuoinBlock; index: number } | null>(null);
   const announcements = React.useMemo(
     () => buildAnnouncements(list.blocks, blockTypes),
     [list.blocks, blockTypes],
@@ -117,7 +129,10 @@ function Canvas({
     lastEmitted.current = list.blocks;
     remember(unacknowledged.current, list.blocks);
     onChange(list.blocks);
-  }, [list.blocks, onChange]);
+    const removed = removedRef.current;
+    removedRef.current = null;
+    if (removed) onDelete?.(removed.block, removed.index);
+  }, [list.blocks, onChange, onDelete]);
 
   React.useEffect(() => {
     const previous = lastSupplied.current;
@@ -147,7 +162,12 @@ function Canvas({
   );
 
   function handleDelete(index: number, id: string) {
+    const block = list.blocks[index];
     pendingDeleteIndexRef.current = index;
+    if (block) removedRef.current = { block, index };
+    // Otherwise a block inserted, deleted and then restored by the host would come
+    // back in edit mode and take the focus from whatever the person is doing.
+    setNewBlockId((current) => (current === id ? null : current));
     remove(id);
   }
 
@@ -258,6 +278,7 @@ function Canvas({
 export function BlockCanvas({
   blocks,
   onChange,
+  onDelete,
   blockTypes = coreBlocks,
   upload,
   resolveAssetUrl,
@@ -276,6 +297,7 @@ export function BlockCanvas({
       <Canvas
         blocks={blocks}
         onChange={onChange}
+        onDelete={onDelete}
         blockTypes={blockTypes}
         readOnly={readOnly}
         className={className}

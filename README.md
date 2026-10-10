@@ -124,6 +124,44 @@ export function EditorWithDiscard({ saved }: { saved: QuoinBlock[] }) {
 
 The structural comparison is shallow over each block's `data`. A host whose block `data` contains nested objects rebuilt on every render, and which does not echo `onChange` back into `blocks`, can still lose an edit. All five core block types have flat data, so this only affects custom blocks. Keep `data` flat, or keep it referentially stable.
 
+### Undoing a deletion
+
+`onChange` reports a new array and nothing about what changed, so a host that wants a "Block deleted / Undo" toast would have to diff two arrays to find out. `onDelete` tells it instead: it fires when a block is removed through its actions menu, with the block and the index it held.
+
+It runs just after the `onChange` that reports the document without that block, so by the time your handler runs the new array has already been reported. Restoring is an ordinary document load: splice the block back at its index and supply the result as `blocks`.
+
+```tsx
+import { useState } from 'react';
+import { BlockCanvas, type QuoinBlock } from 'quoin-editor';
+import 'quoin-editor/styles.css';
+
+export function EditorWithUndo({ saved }: { saved: QuoinBlock[] }) {
+  const [blocks, setBlocks] = useState<QuoinBlock[]>(saved);
+  const [removed, setRemoved] = useState<{ block: QuoinBlock; index: number } | null>(null);
+
+  function restore() {
+    if (!removed) return;
+    const next = [...blocks];
+    next.splice(removed.index, 0, removed.block);
+    setBlocks(next);
+    setRemoved(null);
+  }
+
+  return (
+    <>
+      <BlockCanvas blocks={blocks} onChange={setBlocks} onDelete={(block, index) => setRemoved({ block, index })} />
+      {removed && (
+        <button type="button" onClick={restore}>
+          Undo delete
+        </button>
+      )}
+    </>
+  );
+}
+```
+
+A restored block comes back at rest, even one that was inserted moments before it was deleted, so the undo does not pull the caret out of whatever is being written.
+
 ## Hoist `blockTypes` and your handlers
 
 `BlockCanvas` builds its configuration from `blockTypes`, `upload`, `resolveAssetUrl` and `onError`, and memoises it on their identity. Pass a new array or a new function on every render and the memo is busted, which re-renders every block editor on the page.
