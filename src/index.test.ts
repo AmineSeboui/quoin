@@ -14,6 +14,11 @@ describe('the main entry', () => {
     expect(main.useAutoGrow).toBe(headless.useAutoGrow);
   });
 
+  it('exports the upload controls a custom block needs', () => {
+    expect(main.UploadField).toBeTypeOf('function');
+    expect(main.FilePickerButton).toBeTypeOf('function');
+  });
+
   it('still exports the editor surface alongside them', () => {
     expect(main.BlockCanvas).toBeTypeOf('function');
     expect(main.coreBlocks.length).toBeGreaterThan(0);

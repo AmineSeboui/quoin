@@ -270,7 +270,35 @@ A definition that sets `alwaysEditing` should also supply a `preview`. A `readOn
 
 ### Reaching uploads from a custom block
 
-A block editor receives only `data` and `onChange`. The canvas configuration reaches it through `useQuoin()`, which returns `blockTypes`, `upload`, `resolveAssetUrl` and `onError`. It throws outside a `QuoinProvider`, so call it from a block the canvas is rendering.
+A block editor receives only `data` and `onChange`, but the canvas configuration reaches it through context, so an upload control inside a custom block needs no wiring from you.
+
+`UploadField` is the control the image and file blocks use, and it is exported for yours. It reads `upload` from the canvas it is rendered in, disables itself while a file is in flight, announces the progress to assistive technology, renders a rejection's message beside the button, and says that uploads are not configured when the host wired none.
+
+```tsx
+import { UploadField, type BlockEditorProps } from 'quoin-editor';
+
+type SlidesData = { storageKey: string; filename: string };
+
+export function SlidesEditor({ data, onChange }: BlockEditorProps<SlidesData>) {
+  return (
+    <div>
+      <p>{data.storageKey === '' ? 'No deck yet' : data.filename}</p>
+      <UploadField
+        category="slides"
+        label="Upload slides"
+        accept=".pdf"
+        onUploaded={(result) => onChange({ storageKey: result.storageKey, filename: result.filename })}
+      />
+    </div>
+  );
+}
+```
+
+Register that editor with `defineBlock` as above, and the canvas's `upload` function receives `'slides'` as its category. `UploadField` takes `category`, `label`, an optional `accept` and `onUploaded`.
+
+`FilePickerButton` is the picker underneath it: a labelled button laid over a transparent file input, which hands you the chosen `File` and uploads nothing itself. Take that one when you want your own busy and error presentation.
+
+For anything neither control covers, `useQuoin()` returns `blockTypes`, `upload`, `resolveAssetUrl` and `onError`. It throws outside a `QuoinProvider`, so call it from a block the canvas is rendering.
 
 ```tsx
 import { useQuoin, type BlockEditorProps } from 'quoin-editor';
@@ -546,7 +574,7 @@ The main entry carries a `'use client'` banner, so a React Server Component has 
 
 ## Exports
 
-From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps` and others).
+From `quoin-editor`: `BlockCanvas`, `QuoinProvider`, `useQuoin`, `defineBlock`, `blockByType`, `paletteBlocks`, `coreBlocks`, `UploadField`, `FilePickerButton`, `TEXT_COMMANDS`, `useBlockList`, `useAutosave`, `useAutoGrow`, and the headless transforms and hooks, with their types (`QuoinBlock`, `UploadFn`, `UploadResult`, `BlockDefinition`, `AnyBlockDefinition`, `BlockEditorProps`, `BlockPreviewProps`, `BlockCanvasProps`, `UploadFieldProps`, `FilePickerButtonProps` and others).
 
 From `quoin-editor/headless`: the transforms and the two hooks listed above, with no UI.
 

@@ -1,6 +1,8 @@
 export { BlockCanvas, type BlockCanvasProps } from './canvas/BlockCanvas';
 export { defineBlock, blockByType, paletteBlocks, type BlockDefinition, type AnyBlockDefinition } from './registry';
 export { coreBlocks } from './blocks/core';
+export { UploadField, type UploadFieldProps } from './upload/UploadField';
+export { FilePickerButton, type FilePickerButtonProps } from './upload/FilePickerButton';
 export { QuoinProvider, useQuoin, type QuoinConfig, type QuoinConfigInput } from './context';
 export { useBlockList, type BlockList, type UndoToken } from './hooks/useBlockList';
 export {

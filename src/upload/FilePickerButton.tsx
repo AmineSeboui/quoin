@@ -3,20 +3,23 @@
 import { Upload } from 'lucide-react';
 import { Button } from '../ui/button';
 
-/** The input itself stays focusable and labelled, laid transparently over the
- *  button, so the keyboard and the pointer both land on the real control. The
- *  wrapper paints the focus ring the invisible input cannot show. */
-export function FilePickerButton({
-  label,
-  accept,
-  disabled,
-  onPick,
-}: {
+/** Props for `FilePickerButton`. */
+export type FilePickerButtonProps = {
+  /** Labels the button and the file input behind it. */
   label: string;
+  /** An `accept` attribute for the file input, such as `'image/*'` or `'.pdf'`. */
   accept?: string;
+  /** Greys the button out and disables the input behind it. */
   disabled?: boolean;
+  /** Called with the chosen file, and again if the same file is picked after a failure. */
   onPick: (file: File) => void;
-}) {
+};
+
+/** A button that opens the file picker and hands back the chosen file, performing no upload of its own. */
+// The input itself stays focusable and labelled, laid transparently over the
+// button, so the keyboard and the pointer both land on the real control. The
+// wrapper paints the focus ring the invisible input cannot show.
+export function FilePickerButton({ label, accept, disabled, onPick }: FilePickerButtonProps) {
   return (
     <span className="relative inline-flex rounded-md has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50">
       <Button asChild variant="outline" size="sm">

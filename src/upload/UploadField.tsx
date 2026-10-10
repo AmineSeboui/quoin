@@ -5,18 +5,20 @@ import { useQuoin } from '../context';
 import type { UploadResult } from '../types';
 import { FilePickerButton } from './FilePickerButton';
 
-/** Disables itself both while an upload is in flight and when the host configured no `upload` function. */
-export function UploadField({
-  category,
-  label,
-  accept,
-  onUploaded,
-}: {
+/** Props for `UploadField`; the upload function itself comes from the canvas, not from here. */
+export type UploadFieldProps = {
+  /** Names what the file is for, and is passed to the host's `upload` as its second argument. */
   category: string;
+  /** Labels the control for both the pointer and assistive technology. */
   label: string;
+  /** An `accept` attribute for the file input, such as `'image/*'` or `'.pdf'`. */
   accept?: string;
+  /** Called once the upload resolves. Throwing from it is reported through the canvas `onError`. */
   onUploaded: (result: UploadResult) => void;
-}) {
+};
+
+/** A file picker wired to the canvas `upload` function, with its own busy state and inline error. */
+export function UploadField({ category, label, accept, onUploaded }: UploadFieldProps) {
   const { upload, onError } = useQuoin();
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
