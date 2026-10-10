@@ -1,6 +1,6 @@
 {
   "name": "quoin-editor",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A React block editor: typed blocks, drag to reorder, a markdown surface with a slash palette, and an open block type registry.",
   "license": "MIT",
   "author": "Amine Sboui",
